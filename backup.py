@@ -138,7 +138,7 @@ def volumeBackup(volume):
     dockerRoot = globalSettings[0].get('docker_root')
     mkdirIfNotExist(f"{backup_base_path}/volume/{volume_name}/")
 
-    cmd=f"tar -czvf {backupPath} {dockerRoot}/{volume_name}"
+    cmd=f"tar -czvf {backupPath} {dockerRoot}/volumes/{volume_name}"
     subprocess.run(cmd, shell=True)
     print(f"Backup volume {volume_name} to {backupPath}")
     if validate_tar_gz(f"{backupPath}"):
@@ -174,10 +174,8 @@ def taskParseconfig(task):
         print(task.get('database'))
         mongodbBackup(task)
     elif task_type == "volume":
-        stop_docker_service(max_attempts=3)
         print(task.get('docker').get('container_name'))
         volumeBackup(task)
-        start_docker_service(max_attempts=3)
     elif task_type == "folder":
         print(task.get('path'))
         folderBackup(task)
@@ -204,12 +202,13 @@ def mainLoop():
         else:
             pass
     # 取出docker的任务
+    stop_docker_service(max_attempts=3)
     for task in tasks:
         if task.get('type') == "volume":
             taskParseconfig(task)
         else:
             pass
-
+    start_docker_service(max_attempts=3)
 
 if __name__ == "__main__":
     mainLoop()
