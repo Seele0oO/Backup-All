@@ -1,9 +1,14 @@
 import datetime
 import json
+import os
 import subprocess
 import sys
 import tarfile
 import time
+def mkdirIfNotExist(path):
+    if not os.path.exists(path):
+        os.makedirs(path)
+        
 def readJson():
     with open('config.json') as f:
         data = json.load(f)
@@ -15,7 +20,7 @@ def mysqlBackup(mysql):
     database_name = mysql.get('database')
     timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
     backupPath = f"{backup_base_path}/mysql/{database_name}/{timestamp}.sql"
-    
+    mkdirIfNotExist(backupPath.split("/")[0:-1])
     host = mysql.get('host')
     user = mysql.get('username')
     password = mysql.get('password')
