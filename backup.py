@@ -149,10 +149,11 @@ def folderBackup(folder):
     path=folder.get('path')
     backup_base_path = globalSettings[0].get('backup_root')
     timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-    backupPath = f"{backup_base_path}/folder{path}/{timestamp}.tgz"
-    mkdirIfNotExist(f"{backup_base_path}/folder{path}/")
+    path_name = path.replace("/", "_")
+    backupPath = f"{backup_base_path}/folder{path_name}/{timestamp}.tgz"
+    mkdirIfNotExist(f"{backup_base_path}/folder{path_name}/")
     
-    cmd=f"tar -czvf {backupPath}.tar {path}"
+    cmd=f"tar -czvf {backupPath} {path}"
     subprocess.run(cmd, shell=True)
     print(f"Backup folder {path} to {backupPath}")
     if validate_tar_gz(f"{backupPath}"):
