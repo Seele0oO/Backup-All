@@ -46,6 +46,13 @@
         {
             "type":"folder",
             "path":"/home/seele/project/Backup-All/testdir/workdir/test_folder"
+        },
+        {
+            "type":"volume",
+            "docker":{
+                "is-docker":true,
+                "volume_name":"workdir_my_volume"
+            }
         }
     ]
 }
