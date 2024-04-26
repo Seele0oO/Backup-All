@@ -135,9 +135,10 @@ def volumeBackup(volume):
     backup_base_path = globalSettings[0].get('backup_root')
     timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
     backupPath = f"{backup_base_path}/volume/{volume_name}/{timestamp}.tgz"
+    dockerRoot = globalSettings[0].get('docker_root')
     mkdirIfNotExist(f"{backup_base_path}/volume/{volume_name}/")
 
-    cmd="tar -czvf {backupPath}.tar /var/lib/docker/volumes/{volume_name}"
+    cmd=f"tar -czvf {backupPath} {dockerRoot}/{volume_name}"
     subprocess.run(cmd, shell=True)
     print(f"Backup volume {volume_name} to {backupPath}")
     if validate_tar_gz(f"{backupPath}"):
