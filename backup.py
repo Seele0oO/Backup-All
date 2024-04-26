@@ -78,7 +78,9 @@ import time
 def check_docker_service_status():
     try:
         output = subprocess.check_output("systemctl is-active docker", shell=True)
-        return output.decode('utf-8').strip()
+        status=output.decode('utf-8').strip()
+        print(f"Docker service status: {status}")
+        return status
     except subprocess.CalledProcessError:
         print("Failed to get Docker service status")
         return None
@@ -95,6 +97,7 @@ def stop_docker_service(max_attempts=3):
             subprocess.run("systemctl stop docker", shell=True)
             time.sleep(10)
         else:
+            print()
             print("Failed to get Docker service status")
     print("Failed to stop Docker service,You must check it manually!")
     return False
@@ -128,7 +131,6 @@ def validate_tar_gz(file_path):
 
 def volumeBackup(volume):
     print("volumeBackup")
-    print("Check docker service is stopped")
     volume_name = volume.get('docker').get('volume_name')
     backup_base_path = globalSettings[0].get('backup_root')
     timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
