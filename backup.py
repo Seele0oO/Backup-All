@@ -21,6 +21,7 @@ def mysqlBackup(mysql):
     timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
     backupPath = f"{backup_base_path}/mysql/{database_name}/{timestamp}.sql"
     mkdirIfNotExist(f"{backup_base_path}/mysql/{database_name}/")
+    
     host = mysql.get('host')
     user = mysql.get('username')
     password = mysql.get('password')
@@ -49,6 +50,7 @@ def mongodbBackup(mongodb):
     database_name = mongodb.get('database')
     timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
     backupPath = f"{backup_base_path}/mongodb/{database_name}/{timestamp}.sql"
+    mkdirIfNotExist(f"{backup_base_path}/mongodb/{database_name}/")
     
     host = mongodb.get('host')
     user = mongodb.get('username')
@@ -131,6 +133,7 @@ def volumeBackup(volume):
     backup_base_path = globalSettings[0].get('backup_root')
     timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
     backupPath = f"{backup_base_path}/volume/{volume_name}/{timestamp}.tgz"
+    mkdirIfNotExist(f"{backup_base_path}/volume/{volume_name}/")
 
     cmd="tar -czvf {backupPath}.tar /var/lib/docker/volumes/{volume_name}"
     subprocess.run(cmd, shell=True)
@@ -147,6 +150,8 @@ def folderBackup(folder):
     backup_base_path = globalSettings[0].get('backup_root')
     timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
     backupPath = f"{backup_base_path}/folder{path}/{timestamp}.tgz"
+    mkdirIfNotExist(f"{backup_base_path}/folder{path}/")
+    
     cmd=f"tar -czvf {backupPath}.tar {path}"
     subprocess.run(cmd, shell=True)
     print(f"Backup folder {path} to {backupPath}")
