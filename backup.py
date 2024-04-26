@@ -94,7 +94,7 @@ def stop_docker_service(max_attempts=3):
         elif status == 'active':
             print("Docker service is running")
             print("try to stop Docker service")
-            subprocess.run("systemctl stop docker", shell=True)
+            subprocess.run("systemctl stop docker.{socket,service}", shell=True)
             time.sleep(10)
         else:
             print()
@@ -111,7 +111,7 @@ def start_docker_service(max_attempts=3):
         elif status == 'inactive':
             print("Docker service is stopped")
             print("try to start Docker service")
-            subprocess.run("systemctl start docker", shell=True)
+            subprocess.run("systemctl start docker.{socket,service}", shell=True)
             time.sleep(10)
         else:
             print("Failed to get Docker service status")
