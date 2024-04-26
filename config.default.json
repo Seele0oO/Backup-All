@@ -1,0 +1,57 @@
+{
+    "settings": [
+        {
+            "backup_root": "/localbackup",
+            "backup_keep_duplicate": "4",
+            "docker_root": "/var/lib/docker"
+        }
+    ],
+    "tasks":[
+        {
+            "type":"mysql",
+            "docker":{
+                "is-docker":true,
+                "container_name":"mysql"
+            },
+            "host":"localhost",
+            "port":"3306",
+            "username":"root",
+            "password":"Chengqin888#",
+            "database":"rctechx"
+        },
+        {
+            "type":"mysql",
+            "docker":{
+                "is-docker":true,
+                "container_name":"mysql"
+            },
+            "host":"localhost",
+            "port":"3306",
+            "username":"root",
+            "password":"Chengqin888#",
+            "database":"mysql"
+        },
+        {
+            "type":"mongodb",
+            "docker":{
+                "is-docker":true,
+                "container_name":"mongo"
+            },
+            "host":"localhost",
+            "username":"myuser",
+            "password":"mypassword#",
+            "database":"admin"
+        },
+        {
+            "type":"volume",
+            "docker":{
+                "is-docker":true,
+                "volume_name":"mq"
+            }
+        },
+        {
+            "type":"folder",
+            "path":"/tmp"
+        }
+    ]
+}

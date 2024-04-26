@@ -1,0 +1,26 @@
+services:
+  mysql:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: test
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./mysql:/var/lib/mysql
+  mongo:
+    image: mongo:3.4
+    container_name: mongovbdcsnhb
+    ports:
+      - "27017:27017"
+    volumes:
+      - ./mongo:/data/db
+  redis:
+    image: redis:3.2
+    ports:
+      - "6379:6379"
+    volumes:
+      - my_volume:/data
+
+volumes:
+  my_volume:

@@ -1,36 +1,12 @@
 {
     "settings": [
         {
-            "backup_root": "/localbackup",
+            "backup_root": "/home/seele/project/Backup-All/testdir/backupdir",
             "backup_keep_duplicate": "4",
-            "docker_root": "/var/lib/docker"
+            "docker_root": "/home/seele/project/Backup-All/testdir/workdir/fakedocker"
         }
     ],
     "tasks":[
-        {
-            "type":"mysql",
-            "docker":{
-                "is-docker":true,
-                "container_name":"mysql"
-            },
-            "host":"localhost",
-            "port":"3306",
-            "username":"root",
-            "password":"Chengqin888#",
-            "database":"rctechx"
-        },
-        {
-            "type":"mysql",
-            "docker":{
-                "is-docker":true,
-                "container_name":"mysql"
-            },
-            "host":"localhost",
-            "port":"3306",
-            "username":"root",
-            "password":"Chengqin888#",
-            "database":"mysql"
-        },
         {
             "type":"mongodb",
             "docker":{
@@ -38,20 +14,38 @@
                 "container_name":"mongo"
             },
             "host":"localhost",
-            "username":"myuser",
-            "password":"mypassword#",
+            "port":"27017",
+            "username":"",
+            "password":"",
             "database":"admin"
         },
         {
-            "type":"volume",
+            "type":"mysql",
             "docker":{
                 "is-docker":true,
-                "volume_name":"mq"
-            }
+                "container_name":"workdir-mysql-1"
+            },
+            "host":"localhost",
+            "port":"3306",
+            "username":"root",
+            "password":"root",
+            "database":"test"
+        },
+        {
+            "type":"mysql",
+            "docker":{
+                "is-docker":true,
+                "container_name":"workdir-mysql-1"
+            },
+            "host":"localhost",
+            "port":"3306",
+            "username":"root",
+            "password":"root",
+            "database":"mysql"
         },
         {
             "type":"folder",
-            "path":"/tmp"
+            "path":"/home/seele/project/Backup-All/testdir/workdir/test_folder"
         }
     ]
 }

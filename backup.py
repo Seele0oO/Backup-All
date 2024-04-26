@@ -15,67 +15,6 @@ def readJson():
         data = json.load(f)
         return data
 
-def mysqlBackup(mysql):
-    print("mysqlBackup")
-    backup_base_path = globalSettings[0].get('backup_root')
-    database_name = mysql.get('database')
-    timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-    backupPath = f"{backup_base_path}/mysql/{database_name}/{timestamp}.sql"
-    mkdirIfNotExist(f"{backup_base_path}/mysql/{database_name}/")
-    
-    host = mysql.get('host')
-    user = mysql.get('username')
-    password = mysql.get('password')
-    database = mysql.get('database')
-    
-    is_docker = mysql.get('docker').get("is-docker")
-    
-    if is_docker:
-        print("docker")
-        container = mysql.get('docker').get("container_name")
-        cmd = f"docker exec -i {container} mysqldump -h {host} -u {user} -p{password} {database} > {backupPath}"
-        subprocess.run(cmd, shell=True)
-    else:
-        print("no docker")
-        cmd = f"mysqldump -h {host} -u {user} -p{password} {database} > {backupPath}"
-        subprocess.run(cmd, shell=True)
-
-    print(mysql)
-    print(backupPath)
-    print(cmd)
-
-
-def mongodbBackup(mongodb):
-    print("mongodbBackup")
-    backup_base_path = globalSettings[0].get('backup_root')
-    print(backup_base_path)
-    database_name = mongodb.get('database')
-    timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-    backupPath = f"{backup_base_path}/mongodb/{database_name}/{timestamp}.tgz"
-    mkdirIfNotExist(f"{backup_base_path}/mongodb/{database_name}/")
-    
-    host = mongodb.get('host')
-    user = mongodb.get('username')
-    password = mongodb.get('password')
-    database = mongodb.get('database')
-    is_docker = mongodb.get('docker').get("is-docker")
-    container = mongodb.get('docker').get("container_name")
-    
-    
-    if is_docker:
-        print("docker")
-        container = mongodb.get('docker').get("container_name")
-        docker_cmd = f"docker exec -i {container}"
-        cmd = f"{docker_cmd} mongodump --host {host} --db {database} --username {user} --password {password} --out /tmp/bak && {docker_cmd} tar -czvf /tmp/bak.tgz /tmp/bak  && docker cp {container}:/tmp/bak.tgz {backupPath}"
-        # todo: bug
-    else:
-        print("no docker")
-        cmd = f"mongodump --host {host} --db {database} --username {user} --password {password} --out {backupPath}"
-    
-    print(mongodb)
-    print(backupPath)
-    print(cmd)
-
 def stop_docker_service():
     try:
         # 停止Docker服务
@@ -100,6 +39,19 @@ def start_docker_service():
     except Exception as e:
         print(f"发生错误：{e}", file=sys.stderr)
 
+def get_docker_container_id(container_name):
+    try:
+        # 获取容器ID
+        container_id = subprocess.run(['docker', 'ps', '-qf', f'name=^/{container_name}'], stdout=subprocess.PIPE, check=True, text=True).stdout.strip()
+        print(f"获取容器ID成功：{container_id}")
+        return container_id
+    except subprocess.CalledProcessError:
+        print(f"获取容器ID失败。", file=sys.stderr)
+        return None
+    except Exception as e:
+        print(f"发生错误：{e}", file=sys.stderr)
+        return None
+
 def validate_tar_gz(file_path):
     try:
         with tarfile.open(file_path, 'r:gz') as tar:
@@ -110,6 +62,80 @@ def validate_tar_gz(file_path):
         print(f"{file_path} is not a valid tar.gz file.")
         return False
 
+def mysqlBackup(mysql):
+    print("mysqlBackup")
+    backup_base_path = globalSettings[0].get('backup_root')
+    database_name = mysql.get('database')
+    timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+    backupPath = f"{backup_base_path}/mysql/{database_name}/{timestamp}.sql"
+    mkdirIfNotExist(f"{backup_base_path}/mysql/{database_name}/")
+    
+    host = mysql.get('host')
+    port = mysql.get('port')
+    user = mysql.get('username')
+    password = mysql.get('password')
+    database = mysql.get('database')
+    
+    is_docker = mysql.get('docker').get("is-docker")
+    
+    mysqldump_cmd = f"mysqldump -h {host} -u {user} -p{password} --port {port} {database}"
+    if is_docker:
+        print("docker")
+        container = mysql.get('docker').get("container_name")
+        container = get_docker_container_id(container)
+        docker_cmd = f"docker exec -i {container}"
+        cmd = f"{docker_cmd} {mysqldump_cmd} > {backupPath}"
+        subprocess.run(cmd, shell=True)
+    else:
+        print("no docker")
+        cmd = f"mysqldump -h {host} -u {user} -p{password} --port {port} {database} > {backupPath}"
+        subprocess.run(cmd, shell=True)
+
+    print(mysql)
+    print(backupPath)
+    print(cmd)
+
+def mongodbBackup(mongodb):
+    print("mongodbBackup")
+    backup_base_path = globalSettings[0].get('backup_root')
+    print(backup_base_path)
+    database_name = mongodb.get('database')
+    timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+    backupPath = f"{backup_base_path}/mongodb/{database_name}/{timestamp}.tgz"
+    mkdirIfNotExist(f"{backup_base_path}/mongodb/{database_name}/")
+    
+    host = mongodb.get('host')
+    port = mongodb.get('port')
+    
+    # mongodb may not have username and password
+    username = mongodb.get('username')
+    print(username)
+    password = mongodb.get('password')
+    
+    database = mongodb.get('database')
+    is_docker = mongodb.get('docker').get("is-docker")
+    container = mongodb.get('docker').get("container_name")
+    
+    if username == "" and password == "":
+        mongodump_cmd = f"mongodump --host {host} --port={port} --db {database} --out /tmp/bak"
+    else:
+        mongodump_cmd = f"mongodump --host {host} --port={port} --db {database} --username {username} --password {password} --out /tmp/bak"
+    
+    if is_docker:
+        print("docker")
+        container = mongodb.get('docker').get("container_name")
+        container = get_docker_container_id(container)
+        docker_cmd = f"docker exec -i {container}"
+        
+        cmd = f"{docker_cmd} {mongodump_cmd} && {docker_cmd} tar -czvf /tmp/bak.tgz /tmp/bak  && docker cp {container}:/tmp/bak.tgz {backupPath}"
+    else:
+        print("no docker")
+        cmd = f"mongodump --host {host} --db {database} --username {user} --password {password} --out {backupPath}"
+    
+    print(mongodb)
+    print(backupPath)
+    print(cmd)
+    subprocess.run(cmd, shell=True)
 
 def volumeBackup(volume):
     print("volumeBackup")
@@ -145,7 +171,6 @@ def folderBackup(folder):
         print("Backup successful")
     else:
         print(f"folder {path} Backup failed")
-    
 
 def taskParseconfig(task):
     task_type = task.get('type')
@@ -184,13 +209,23 @@ def mainLoop():
         else:
             pass
     # 取出docker的任务  
-    stop_docker_service()
+    # stop_docker_service()
     for task in tasks:
         if task.get('type') == "volume":
             taskParseconfig(task)
         else:
             pass
-    start_docker_service()
+    # start_docker_service()
 
+def removeOldBackup():
+    backup_base_path = globalSettings[0].get('backup_root')
+    print(backup_base_path)
+    # 遍历目录，删除超过1分钟的备份文件
+    cmd = f"find {backup_base_path} "+"-mmin +1  -name '*.*' -exec rm -rf {} \;"
+    # 遍历目录，删除超过30天的备份文件
+    # cmd = f"find {backup_base_path} "+"-mtime +30  -name '*.*' -exec rm -rf {} \;"
+    subprocess.run(cmd, shell=True)
+    print(f"Remove old backup files in {backup_base_path}.")
 if __name__ == "__main__":
     mainLoop()
+    removeOldBackup()
