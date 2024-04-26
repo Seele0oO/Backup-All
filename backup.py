@@ -48,22 +48,26 @@ def mysqlBackup(mysql):
 def mongodbBackup(mongodb):
     print("mongodbBackup")
     backup_base_path = globalSettings[0].get('backup_root')
+    print(backup_base_path)
     database_name = mongodb.get('database')
     timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-    backupPath = f"{backup_base_path}/mongodb/{database_name}/{timestamp}.sql"
+    backupPath = f"{backup_base_path}/mongodb/{database_name}/{timestamp}.tgz"
     mkdirIfNotExist(f"{backup_base_path}/mongodb/{database_name}/")
     
     host = mongodb.get('host')
     user = mongodb.get('username')
     password = mongodb.get('password')
     database = mongodb.get('database')
-    
     is_docker = mongodb.get('docker').get("is-docker")
+    container = mongodb.get('docker').get("container_name")
+    
     
     if is_docker:
         print("docker")
         container = mongodb.get('docker').get("container_name")
-        cmd = f"docker exec -i {container} mongodump --host {host} --db {database} --username {user} --password {password} --out {backupPath}"
+        docker_cmd = f"docker exec -i {container}"
+        cmd = f"{docker_cmd} mongodump --host {host} --db {database} --username {user} --password {password} --out /tmp/bak && {docker_cmd} tar -czvf /tmp/bak.tgz /tmp/bak  && docker cp {container}:/tmp/bak.tgz {backupPath}"
+        # todo: bug
     else:
         print("no docker")
         cmd = f"mongodump --host {host} --db {database} --username {user} --password {password} --out {backupPath}"
@@ -179,7 +183,7 @@ def mainLoop():
             taskParseconfig(task)
         else:
             pass
-    # 取出docker的任务
+    # 取出docker的任务  
     stop_docker_service()
     for task in tasks:
         if task.get('type') == "volume":
