@@ -5,6 +5,7 @@ import subprocess
 import sys
 import tarfile
 import time
+
 def mkdirIfNotExist(path):
     if not os.path.exists(path):
         os.makedirs(path)
@@ -71,52 +72,29 @@ def mongodbBackup(mongodb):
     print(backupPath)
     print(cmd)
 
-
-import subprocess
-import time
-
-def check_docker_service_status():
+def stop_docker_service():
     try:
-        output = subprocess.check_output("systemctl is-active docker", shell=True)
-        status=output.decode('utf-8').strip()
-        print(f"Docker service status: {status}")
-        return status
+        # 停止Docker服务
+        subprocess.run(['sudo', 'systemctl', 'stop', 'docker.service'], check=True)
+        # 停止Docker socket
+        subprocess.run(['sudo', 'systemctl', 'stop', 'docker.socket'], check=True)
+        print("Docker服务和Socket已成功停止。")
     except subprocess.CalledProcessError:
-        print("Failed to get Docker service status")
-        return None
+        print("停止Docker服务或Socket失败。", file=sys.stderr)
+    except Exception as e:
+        print(f"发生错误：{e}", file=sys.stderr)
 
-def stop_docker_service(max_attempts=3):
-    for attempt in range(max_attempts):
-        status = check_docker_service_status()
-        if status == 'inactive':
-            print("Docker service is stopped")
-            return True
-        elif status == 'active':
-            print("Docker service is running")
-            print("try to stop Docker service")
-            subprocess.run("systemctl stop docker.{socket,service}", shell=True)
-            time.sleep(10)
-        else:
-            print()
-            print("Failed to get Docker service status")
-    print("Failed to stop Docker service,You must check it manually!")
-    return False
-
-def start_docker_service(max_attempts=3):
-    for attempt in range(max_attempts):
-        status = check_docker_service_status()
-        if status == 'active':
-            print("Docker service is running")
-            return True
-        elif status == 'inactive':
-            print("Docker service is stopped")
-            print("try to start Docker service")
-            subprocess.run("systemctl start docker.{socket,service}", shell=True)
-            time.sleep(10)
-        else:
-            print("Failed to get Docker service status")
-    print("Failed to start Docker service,You must check it manually!")
-    return False
+def start_docker_service():
+    try:
+        # 启动Docker socket
+        subprocess.run(['sudo', 'systemctl', 'start', 'docker.socket'], check=True)
+        # 启动Docker服务
+        subprocess.run(['sudo', 'systemctl', 'start', 'docker.service'], check=True)
+        print("Docker服务和Socket已成功启动。")
+    except subprocess.CalledProcessError:
+        print("启动Docker服务或Socket失败。", file=sys.stderr)
+    except Exception as e:
+        print(f"发生错误：{e}", file=sys.stderr)
 
 def validate_tar_gz(file_path):
     try:
