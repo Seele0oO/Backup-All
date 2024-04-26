@@ -27,10 +27,12 @@ def mysqlBackup(mysql):
         print("docker")
         container = mysql.get('docker').get("container_name")
         cmd = f"docker exec -i {container} mysqldump -h {host} -u {user} -p{password} {database} > {backupPath}"
+        subprocess.run(cmd, shell=True)
     else:
         print("no docker")
         cmd = f"mysqldump -h {host} -u {user} -p{password} {database} > {backupPath}"
-    
+        subprocess.run(cmd, shell=True)
+
     print(mysql)
     print(backupPath)
     print(cmd)
@@ -139,7 +141,7 @@ def folderBackup(folder):
     path=folder.get('path')
     backup_base_path = globalSettings[0].get('backup_root')
     timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-    backupPath = f"{backup_base_path}/folder/{path}/{timestamp}.tgz"
+    backupPath = f"{backup_base_path}/folder{path}/{timestamp}.tgz"
     cmd=f"tar -czvf {backupPath}.tar {path}"
     subprocess.run(cmd, shell=True)
     print(f"Backup folder {path} to {backupPath}")
