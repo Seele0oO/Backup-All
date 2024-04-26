@@ -152,7 +152,7 @@ def taskParseconfig(task):
         print(task.get('database'))
         mongodbBackup(task)
     elif task_type == "volume":
-        print(task.get('docker').get('container_name'))
+        print(task.get('docker').get('volume_name'))
         volumeBackup(task)
     elif task_type == "folder":
         print(task.get('path'))
@@ -180,13 +180,13 @@ def mainLoop():
         else:
             pass
     # 取出docker的任务
-    stop_docker_service(max_attempts=3)
+    stop_docker_service()
     for task in tasks:
         if task.get('type') == "volume":
             taskParseconfig(task)
         else:
             pass
-    start_docker_service(max_attempts=3)
+    start_docker_service()
 
 if __name__ == "__main__":
     mainLoop()

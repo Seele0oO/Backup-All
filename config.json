@@ -46,7 +46,6 @@
             "type":"volume",
             "docker":{
                 "is-docker":true,
-                "docker-root":"/var/lib/docker/volumes",
                 "volume_name":"mq"
             }
         },
