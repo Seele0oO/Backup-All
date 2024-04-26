@@ -20,7 +20,7 @@ def mysqlBackup(mysql):
     database_name = mysql.get('database')
     timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
     backupPath = f"{backup_base_path}/mysql/{database_name}/{timestamp}.sql"
-    mkdirIfNotExist(backupPath.split("/")[0:-1])
+    mkdirIfNotExist(f"{backup_base_path}/mysql/{database_name}/")
     host = mysql.get('host')
     user = mysql.get('username')
     password = mysql.get('password')
