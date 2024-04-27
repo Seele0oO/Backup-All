@@ -9,7 +9,14 @@ import time
 import logging
 
 class BackupManager:
+    """备份管理器类，用于备份数据库和文件夹/卷。
+    """
     def __init__(self, config_file='config.json'):
+        """_summary_
+
+        Args:
+            config_file (str, optional): _description_. Defaults to 'config.json'.
+        """
         self.config = self.read_json(config_file)
         # 从列表中获取第一个设置字典
         self.backup_root = self.config['settings'][0]['backup_root']
@@ -18,6 +25,14 @@ class BackupManager:
         logging.info(f"Configuration loaded: {self.config}")
 
     def read_json(self, file_path):
+        """_summary_
+
+        Args:
+            file_path (_type_): _description_
+
+        Returns:
+            _type_: _description_
+        """
         with open(file_path, 'r') as file:
             return json.load(file)
 
@@ -94,11 +109,21 @@ class BackupManager:
         subprocess.run(cmd, shell=True)
         
         if db_type == 'mongodb':
-            # 压缩MongoDB导出的文件夹
-            tar_cmd = f"tar -czvf {backup_path} -C {temp_dir} ."
-            subprocess.run(tar_cmd, shell=True)
-            # 清理临时文件夹
-            shutil.rmtree(temp_dir)
+            if is_docker:
+                # 将MongoDB导出的文件夹复制到主机
+                copy_cmd = f"docker cp {container}:{temp_dir} {self.backup_root}/{db_type}/temp"
+                subprocess.run(copy_cmd, shell=True)
+                # 压缩MongoDB导出的文件夹
+                tar_cmd = f"tar -czvf {backup_path} -C {self.backup_root}/{db_type}/temp {database}"
+                subprocess.run(tar_cmd, shell=True)
+                # 删除MongoDB导出的文件夹
+                shutil.rmtree(f"{self.backup_root}/{db_type}/temp")
+            else:
+                # 压缩MongoDB导出的文件夹
+                tar_cmd = f"tar -czvf {backup_path} -C {temp_dir} ."
+                subprocess.run(tar_cmd, shell=True)
+                # 清理临时文件夹
+                shutil.rmtree(temp_dir)
 
         logging.info(f"Backup of {db_type} database {database} completed successfully at {backup_path}.")
 
@@ -165,6 +190,8 @@ class BackupManager:
 
     def remove_old_backups(self):
         cmd = f"find {self.backup_root} -mmin +2 -name '*.*' -exec rm -rf {{}} \;"
+        # 删除一个月前的备份
+        # cmd = f"find {self.backup_root} -mtime +30 -name '*.*' -exec rm -rf {{}} \;"
         subprocess.run(cmd, shell=True)
         logging.info(f"Old backups removed from {self.backup_root}.")
 
