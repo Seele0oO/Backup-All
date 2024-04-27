@@ -37,9 +37,19 @@ class BackupManager:
             return json.load(file)
 
     def mkdir_if_not_exist(self, path):
+        """_summary_
+
+        Args:
+            path (_type_): _description_
+        """
         os.makedirs(path, exist_ok=True)
 
     def stop_docker_service(self):
+        """_summary_
+
+        Raises:
+            RuntimeError: _description_
+        """
         try:
             subprocess.run(['sudo', 'systemctl', 'stop', 'docker.service'], check=True)
             subprocess.run(['sudo', 'systemctl', 'stop', 'docker.socket'], check=True)
@@ -52,6 +62,11 @@ class BackupManager:
             raise
 
     def start_docker_service(self):
+        """_summary_
+
+        Raises:
+            RuntimeError: _description_
+        """
         try:
             subprocess.run(['sudo', 'systemctl', 'start', 'docker.socket'], check=True)
             subprocess.run(['sudo', 'systemctl', 'start', 'docker.service'], check=True)
@@ -64,6 +79,17 @@ class BackupManager:
             raise
 
     def get_docker_container_id(self, container_name):
+        """_summary_
+
+        Args:
+            container_name (_type_): _description_
+
+        Raises:
+            RuntimeError: _description_
+
+        Returns:
+            _type_: _description_
+        """
         try:
             result = subprocess.run(['docker', 'ps', '-qf', f'name=^/{container_name}'], stdout=subprocess.PIPE, check=True, text=True)
             container_id = result.stdout.strip()
@@ -77,6 +103,12 @@ class BackupManager:
             raise
 
     def backup_database(self, database_info, db_type='mysql'):
+        """_summary_
+
+        Args:
+            database_info (_type_): _description_
+            db_type (str, optional): _description_. Defaults to 'mysql'.
+        """
         backup_base_path = f"{self.backup_root}/{db_type}/{database_info['database']}"
         timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
         self.mkdir_if_not_exist(backup_base_path)
@@ -128,6 +160,12 @@ class BackupManager:
         logging.info(f"Backup of {db_type} database {database} completed successfully at {backup_path}.")
 
     def backup_volume_or_folder(self, item, item_type='folder'):
+        """_summary_
+
+        Args:
+            item (_type_): _description_
+            item_type (str, optional): _description_. Defaults to 'folder'.
+        """
         # 检查必需的键是否存在
         if 'docker' not in item and item_type == 'volume':
             logging.error(f"Volume item missing 'docker' key: {item}")
@@ -155,6 +193,14 @@ class BackupManager:
             logging.error(f"{item_type} {item_name} backup failed.")
 
     def validate_tar_gz(self, file_path):
+        """_summary_
+
+        Args:
+            file_path (_type_): _description_
+
+        Returns:
+            _type_: _description_
+        """
         try:
             with tarfile.open(file_path, 'r:gz') as tar:
                 tar.getmembers()
@@ -163,6 +209,14 @@ class BackupManager:
             return False
 
     def parse_and_execute_task(self, task):
+        """_summary_
+
+        Args:
+            task (_type_): _description_
+
+        Raises:
+            ValueError: _description_
+        """
         task_type = task.get('type')
         if task_type in ['mysql', 'mongodb']:
             self.backup_database(task, db_type=task_type)
@@ -173,6 +227,8 @@ class BackupManager:
             raise ValueError("Unsupported task type")
 
     def main_loop(self):
+        """_summary_
+        """
         tasks = self.config['tasks']
         try:
             # self.stop_docker_service()
@@ -189,6 +245,8 @@ class BackupManager:
             self.remove_old_backups()
 
     def remove_old_backups(self):
+        """_summary_
+        """
         cmd = f"find {self.backup_root} -mmin +2 -name '*.*' -exec rm -rf {{}} \;"
         # 删除一个月前的备份
         # cmd = f"find {self.backup_root} -mtime +30 -name '*.*' -exec rm -rf {{}} \;"
