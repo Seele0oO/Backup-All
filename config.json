@@ -2,7 +2,7 @@
     "settings": [
         {
             "backup_root": "/home/seele/project/Backup-All/testdir/backupdir",
-            "backup_keep_duplicate": "4",
+            "backup_keep_days": "30",
             "docker_root": "/home/seele/project/Backup-All/testdir/workdir/fakedocker"
         }
     ],

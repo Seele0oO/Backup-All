@@ -21,6 +21,7 @@ class BackupManager:
         # 从列表中获取第一个设置字典
         self.backup_root = self.config['settings'][0]['backup_root']
         self.docker_root = self.config['settings'][0]['docker_root']
+        self.backup_keep_days     = self.config['settings'][0]['backup_keep_days']
         logging.basicConfig(level=logging.INFO)
         logging.info(f"Configuration loaded: {self.config}")
 
@@ -247,9 +248,9 @@ class BackupManager:
     def remove_old_backups(self):
         """_summary_
         """
-        cmd = f"find {self.backup_root} -mmin +2 -name '*.*' -exec rm -rf {{}} \;"
+        # cmd = f"find {self.backup_root} -mmin +2 -name '*.*' -exec rm -rf {{}} \;"
         # 删除一个月前的备份
-        # cmd = f"find {self.backup_root} -mtime +30 -name '*.*' -exec rm -rf {{}} \;"
+        cmd = f"find {self.backup_root} -mtime +{self.backup_keep_days} -name '*.*' -exec rm -rf {{}} \;"
         subprocess.run(cmd, shell=True)
         logging.info(f"Old backups removed from {self.backup_root}.")
 
