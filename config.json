@@ -6,18 +6,41 @@
             "docker_root": "/home/seele/project/Backup-All/testdir/workdir/fakedocker"
         }
     ],
-    "tasks":[
+    "tasks": [
         {
-            "type":"mongodb",
-            "docker":{
-                "is-docker":true,
-                "container_name":"mongo"
+            "type": "mongodb",
+            "docker": {
+                "is-docker": true,
+                "container_name": "mongo"
             },
-            "host":"localhost",
-            "port":"27017",
-            "username":"",
-            "password":"",
-            "database":"admin"
+            "host": "localhost",
+            "port": "27017",
+            "username": "",
+            "password": "",
+            "database": "admin"
+        },
+        {
+            "type": "mysql",
+            "docker": {
+                "is-docker": true,
+                "container_name": "workdir-mysql-1"
+            },
+            "host": "localhost",
+            "port": "3306",
+            "username": "root",
+            "password": "root",
+            "database": "mysql"
+        },
+        {
+            "type": "folder",
+            "path": "/home/seele/project/Backup-All/testdir/workdir/test_folder"
+        },
+        {
+            "type": "volume",
+            "docker": {
+                "is-docker": true,
+                "volume_name": "workdir_my_volume"
+            }
         }
     ]
 }

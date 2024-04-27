@@ -145,14 +145,37 @@ class BackupManager:
                 copy_cmd = f"docker cp {container}:{temp_dir} {self.backup_root}/{db_type}/temp"
                 subprocess.run(copy_cmd, shell=True)
                 # 压缩MongoDB导出的文件夹
-                tar_cmd = f"tar -czvf {backup_path} -C {self.backup_root}/{db_type}/temp {database}"
-                subprocess.run(tar_cmd, shell=True)
+                # tar_cmd = f"tar -czvf {backup_path} -C {self.backup_root}/{db_type}/temp {database}"
+                # subprocess.run(tar_cmd, shell=True)
+                # 使用tarfile库压缩
+                backup_root = f"{self.backup_root}/{db_type}/temp/{database}"
+                with tarfile.open(backup_path, "w:gz") as tar:
+                    for root, dirs, files in os.walk(backup_root):
+                        for file in files:
+                            full_path = os.path.join(root, file)
+                            relative_path = os.path.relpath(full_path, backup_root)
+                            tar.add(full_path, arcname=relative_path)
+                # 检查压缩文件是否有效
+                if not self.validate_tar_gz(backup_path):
+                    logging.error(f"Backup of {db_type} database {database} failed.")
+                    return
                 # 删除MongoDB导出的文件夹
                 shutil.rmtree(f"{self.backup_root}/{db_type}/temp")
             else:
                 # 压缩MongoDB导出的文件夹
-                tar_cmd = f"tar -czvf {backup_path} -C {temp_dir} ."
-                subprocess.run(tar_cmd, shell=True)
+                # tar_cmd = f"tar -czvf {backup_path} -C {temp_dir} ."
+                # subprocess.run(tar_cmd, shell=True)
+                # 使用tarfile库压缩
+                with tarfile.open(backup_path, "w:gz") as tar:
+                    for root, dirs, files in os.walk(temp_dir):
+                        for file in files:
+                            full_path = os.path.join(root, file)
+                            relative_path = os.path.relpath(full_path, temp_dir)
+                            tar.add(full_path, arcname=relative_path, filter='data')
+                # 检查压缩文件是否有效
+                if not self.validate_tar_gz(backup_path):
+                    logging.error(f"Backup of {db_type} database {database} failed.")
+                    return
                 # 清理临时文件夹
                 shutil.rmtree(temp_dir)
 
@@ -184,8 +207,15 @@ class BackupManager:
         else:
             source_path = item['path']
 
-        cmd = f"tar -czvf {backup_path} {source_path}"
-        subprocess.run(cmd, shell=True)
+        # cmd = f"tar -czvf {backup_path} {source_path}"
+        # subprocess.run(cmd, shell=True)
+        with tarfile.open(backup_path, "w:gz") as tar:
+            for root, dirs, files in os.walk(source_path):
+                for file in files:
+                    full_path = os.path.join(root, file)
+                    relative_path = os.path.relpath(full_path, source_path)
+                    tar.add(full_path, arcname=relative_path)
+        # 检查压缩文件是否
         if self.validate_tar_gz(backup_path):
             logging.info(f"Backup of {item_type} {item_name} completed successfully.")
         else:
