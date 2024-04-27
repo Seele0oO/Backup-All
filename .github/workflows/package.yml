@@ -19,13 +19,12 @@ jobs:
 
     - name: Install dependencies
       run: |
-        sudo apt-get install -y upx
         python -m pip install --upgrade pip
         pip install pyinstaller
 
     - name: Build executable
       run: |
-        pyinstaller --onefile --upx-dir /usr/bin class_backup.py
+        pyinstaller --onefile class_backup.py
 
     - name: Upload executable
       uses: actions/upload-artifact@v4
