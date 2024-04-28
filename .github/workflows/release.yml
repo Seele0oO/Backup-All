@@ -23,11 +23,9 @@ jobs:
           title: Release ${{ github.ref }}
 
       - name: Download artifact
-        id: download_artifact
         uses: actions/download-artifact@v4
         with:
-          name: dist/class_backup
-          path: dist
+            name: class_backup
 
       - name: Upload Release Asset
         uses: actions/upload-release-asset@v1
