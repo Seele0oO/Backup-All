@@ -277,7 +277,7 @@ class BackupManager:
         """_summary_
         """
         # cmd = f"find {self.backup_root} -mmin +2 -name '*.*' -exec rm -rf {{}} \;"
-        # 删除一个月前的备份
+        # 删除{backup_keep_days}天前的备份
         cmd = f"find {self.backup_root} -mtime +{self.backup_keep_days} -name '*.*' -exec rm -rf {{}} \;"
         subprocess.run(cmd, shell=True)
         logging.info(f"Old backups removed from {self.backup_root}.")
