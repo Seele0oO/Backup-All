@@ -15,13 +15,20 @@ class BackupManager:
         Args:
             config_file (str, optional): _description_. Defaults to 'config.json'.
         """
-        self.config = self.read_json(config_file)
+        try:
+            self.config = self.read_json(config_file)
+        except FileNotFoundError as e:
+            logging.error(f"配置文件{config_file}未找到。")
+            raise FileNotFoundError(f"Configuration file {config_file} not found") from e
+        except Exception as e:
+            logging.error(f"发生错误：{e}")
+            SystemExit(1)
         # 从列表中获取第一个设置字典
         self.backup_root = self.config['settings'][0]['backup_root']
         self.docker_root = self.config['settings'][0]['docker_root']
         self.backup_keep_days     = self.config['settings'][0]['backup_keep_days']
         logging.basicConfig(level=logging.INFO)
-        logging.info(f"Configuration loaded: {self.config}")
+        logging.info(f"配置文件已载入: {self.config}")
 
     def read_json(self, file_path):
         """_summary_
@@ -157,7 +164,7 @@ class BackupManager:
                             tar.add(full_path, arcname=relative_path)
                 # 检查压缩文件是否有效
                 if not self.validate_tar_gz(backup_path):
-                    logging.error(f"Backup of {db_type} database {database} failed.")
+                    logging.error(f"类型为 {db_type} 的 database {database} 备份失败.")
                     return
                 # 删除MongoDB导出的文件夹
                 shutil.rmtree(f"{self.backup_root}/{db_type}/temp")
@@ -170,11 +177,13 @@ class BackupManager:
                     for root, dirs, files in os.walk(temp_dir):
                         for file in files:
                             full_path = os.path.join(root, file)
+                            logging.info(full_path)
                             relative_path = os.path.relpath(full_path, temp_dir)
-                            tar.add(full_path, arcname=relative_path, filter='data')
+                            logging.info(relative_path)
+                            tar.add(full_path, arcname=relative_path)
                 # 检查压缩文件是否有效
                 if not self.validate_tar_gz(backup_path):
-                    logging.error(f"Backup of {db_type} database {database} failed.")
+                    logging.error(f"类型为 {db_type} 的 database {database} 备份失败.")
                     return
                 # 清理临时文件夹
                 shutil.rmtree(temp_dir)
@@ -190,10 +199,10 @@ class BackupManager:
         """
         # 检查必需的键是否存在
         if 'docker' not in item and item_type == 'volume':
-            logging.error(f"Volume item missing 'docker' key: {item}")
+            logging.error(f"Volume 类型的项目缺少 'docker' 键: {item}")
             return
         elif 'path' not in item and item_type == 'folder':
-            logging.error(f"Folder item missing 'path' key: {item}")
+            logging.error(f"Folder 类型的项目缺少 'path' 键: {item}")
             return
 
         item_name = item['docker']['volume_name'] if item_type == 'volume' else item['path'].replace('/', '_')[1:]
@@ -217,9 +226,9 @@ class BackupManager:
                     tar.add(full_path, arcname=relative_path)
         # 检查压缩文件是否
         if self.validate_tar_gz(backup_path):
-            logging.info(f"Backup of {item_type} {item_name} completed successfully.")
+            logging.info(f"{item_type} {item_name} 的备份成功完成。")
         else:
-            logging.error(f"{item_type} {item_name} backup failed.")
+            logging.error(f"{item_type} {item_name} 的备份失败。")
 
     def validate_tar_gz(self, file_path):
         """_summary_
@@ -252,7 +261,7 @@ class BackupManager:
         elif task_type in ['volume', 'folder']:
             self.backup_volume_or_folder(task, item_type=task_type)
         else:
-            logging.error(f"Unsupported task type: {task_type}")
+            logging.error(f"不支持的任务类型: {task_type}")
             raise ValueError("Unsupported task type")
 
     def main_loop(self):
@@ -269,7 +278,7 @@ class BackupManager:
                     self.parse_and_execute_task(task)
             # self.start_docker_service()
         except Exception as e:
-            logging.error(f"An error occurred during the backup process: {e}")
+            logging.error(f"在备份过程中出现了错误: {e}")
         finally:
             self.remove_old_backups()
 
@@ -280,7 +289,7 @@ class BackupManager:
         # 删除{backup_keep_days}天前的备份
         cmd = f"find {self.backup_root} -mtime +{self.backup_keep_days} -name '*.*' -exec rm -rf {{}} \;"
         subprocess.run(cmd, shell=True)
-        logging.info(f"Old backups removed from {self.backup_root}.")
+        logging.info(f"旧的备份已经被移除 {self.backup_root}.")
 
 if __name__ == "__main__":
     backup_manager = BackupManager()
