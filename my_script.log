@@ -1,0 +1,76 @@
+2024-05-07 10:00:25 [INFO] backup_root: /home/seele/project/Backup-All/testdir/backupdir
+2024-05-07 10:00:25 [INFO] backup_keep_days: 30
+2024-05-07 10:00:25 [INFO] docker_root: /home/seele/project/Backup-All/testdir/workdir/fakedocker
+2024-05-07 10:00:25 [INFO] task_type = mongodb
+2024-05-07 10:00:25 [INFO] username & password is empty,but it's optional
+2024-05-07 10:00:25 [INFO] is_docker = false
+2024-05-07 10:00:25 [DEBUG] tar_command: tar -zcvf /home/seele/project/Backup-All/testdir/backupdir/admin-20240507100025.tar.gz /home/seele/project/Backup-All/testdir/backupdir/admin
+2024-05-07 10:00:25 [DEBUG] rm_command: find /home/seele/project/Backup-All/testdir/backupdir -name admin -type d -mtime +30 -exec rm -rf {} \;
+2024-05-07 10:00:25 [INFO] full_command:   mongodump --host localhost --port 27017 --db admin --out /home/seele/project/Backup-All/testdir/backupdir/admin && tar -zcvf /home/seele/project/Backup-All/testdir/backupdir/admin-20240507100025.tar.gz /home/seele/project/Backup-All/testdir/backupdir/admin && find /home/seele/project/Backup-All/testdir/backupdir -name admin -type d -mtime +30 -exec rm -rf {} \;
+2024-05-07 10:00:26 [INFO] task_type = mysql
+2024-05-07 10:00:26 [INFO] task_type = folder
+2024-05-07 10:00:26 [INFO] task_type = volume
+2024-05-07 10:01:38 [INFO] backup_root: /home/seele/project/Backup-All/testdir/backupdir
+2024-05-07 10:01:38 [INFO] backup_keep_days: 30
+2024-05-07 10:01:38 [INFO] docker_root: /home/seele/project/Backup-All/testdir/workdir/fakedocker
+2024-05-07 10:01:38 [INFO] task_type = mongodb
+2024-05-07 10:01:39 [INFO] username & password is empty,but it's optional
+2024-05-07 10:01:39 [INFO] is_docker = false
+2024-05-07 10:01:39 [DEBUG] tar_command: tar -zcvf /home/seele/project/Backup-All/testdir/backupdir/admin-20240507100139.tar.gz /home/seele/project/Backup-All/testdir/backupdir/admin
+2024-05-07 10:01:39 [DEBUG] rm_command: find /home/seele/project/Backup-All/testdir/backupdir -name admin -type d -mtime +30 -exec rm -rf {} \;
+2024-05-07 10:01:39 [INFO] full_command:   mongodump --host localhost --port 27017 --db admin --out /home/seele/project/Backup-All/testdir/backupdir/admin && tar -zcvf /home/seele/project/Backup-All/testdir/backupdir/admin-20240507100139.tar.gz /home/seele/project/Backup-All/testdir/backupdir/admin && find /home/seele/project/Backup-All/testdir/backupdir -name admin -type d -mtime +30 -exec rm -rf {} \;
+2024-05-07 10:01:39 [INFO] task_type = mysql
+2024-05-07 10:01:39 [INFO] task_type = folder
+2024-05-07 10:01:39 [INFO] task_type = volume
+2024-05-07 10:02:24 [INFO] backup_root: /home/seele/project/Backup-All/testdir/backupdir
+2024-05-07 10:02:24 [INFO] backup_keep_days: 30
+2024-05-07 10:02:24 [INFO] docker_root: /home/seele/project/Backup-All/testdir/workdir/fakedocker
+2024-05-07 10:02:25 [INFO] task_type = mongodb
+2024-05-07 10:02:25 [INFO] username & password is empty,but it's optional
+2024-05-07 10:02:25 [INFO] is_docker = true
+2024-05-07 10:02:25 [INFO] container_name: mongo
+2024-05-07 10:02:25 [ERROR] Can't find a container named mongo
+2024-05-07 10:02:44 [INFO] backup_root: /home/seele/project/Backup-All/testdir/backupdir
+2024-05-07 10:02:44 [INFO] backup_keep_days: 30
+2024-05-07 10:02:44 [INFO] docker_root: /home/seele/project/Backup-All/testdir/workdir/fakedocker
+2024-05-07 10:02:44 [INFO] task_type = mongodb
+2024-05-07 10:02:45 [INFO] username & password is empty,but it's optional
+2024-05-07 10:02:45 [INFO] is_docker = false
+2024-05-07 10:02:45 [DEBUG] tar_command: tar -zcvf /home/seele/project/Backup-All/testdir/backupdir/admin-20240507100245.tar.gz /home/seele/project/Backup-All/testdir/backupdir/admin
+2024-05-07 10:02:45 [DEBUG] rm_command: find /home/seele/project/Backup-All/testdir/backupdir -name admin -type d -mtime +30 -exec rm -rf {} \;
+2024-05-07 10:02:45 [INFO] full_command:   mongodump --host localhost --port 27017 --db admin --out /home/seele/project/Backup-All/testdir/backupdir/admin && tar -zcvf /home/seele/project/Backup-All/testdir/backupdir/admin-20240507100245.tar.gz /home/seele/project/Backup-All/testdir/backupdir/admin && find /home/seele/project/Backup-All/testdir/backupdir -name admin -type d -mtime +30 -exec rm -rf {} \;
+2024-05-07 10:02:45 [INFO] task_type = mysql
+2024-05-07 10:02:45 [INFO] task_type = folder
+2024-05-07 10:02:45 [INFO] task_type = volume
+2024-05-07 10:04:51 [INFO] backup_root: /home/seele/project/Backup-All/testdir/backupdir
+2024-05-07 10:04:51 [INFO] backup_keep_days: 30
+2024-05-07 10:04:51 [INFO] docker_root: /home/seele/project/Backup-All/testdir/workdir/fakedocker
+2024-05-07 10:04:51 [INFO] task_type = mongodb
+2024-05-07 10:04:51 [INFO] username & password is empty,but it's optional
+2024-05-07 10:04:51 [INFO] is_docker = false
+2024-05-07 10:04:52 [DEBUG] tar_command: tar -zcvf /home/seele/project/Backup-All/testdir/backupdir/admin-20240507100452.tar.gz /home/seele/project/Backup-All/testdir/backupdir/admin
+2024-05-07 10:04:52 [DEBUG] rm_command: find /home/seele/project/Backup-All/testdir/backupdir -name admin -type d -mtime +30 -exec rm -rf {} \;
+2024-05-07 10:04:52 [INFO] full_command:   mongodump --host localhost --port 27017 --db admin --out /home/seele/project/Backup-All/testdir/backupdir/admin && tar -zcvf /home/seele/project/Backup-All/testdir/backupdir/admin-20240507100452.tar.gz /home/seele/project/Backup-All/testdir/backupdir/admin && find /home/seele/project/Backup-All/testdir/backupdir -name admin -type d -mtime +30 -exec rm -rf {} \;
+2024-05-07 10:04:52 [INFO] task_type = mysql
+2024-05-07 10:04:52 [INFO] task_type = folder
+2024-05-07 10:04:52 [INFO] task_type = volume
+2024-05-07 10:05:43 [INFO] backup_root: /home/seele/project/Backup-All/testdir/backupdir
+2024-05-07 10:05:43 [INFO] backup_keep_days: 30
+2024-05-07 10:05:43 [INFO] docker_root: /home/seele/project/Backup-All/testdir/workdir/fakedocker
+2024-05-07 10:05:43 [INFO] There is a task config: {"type":"mongodb","docker":{"is-docker":false,"container_name":"mongo"},"host":"localhost","port":"27017","username":"","password":"","database":"admin"}
+2024-05-07 10:05:43 [INFO] task_type: mongodb
+2024-05-07 10:05:43 [INFO] task_type = mongodb
+2024-05-07 10:05:44 [INFO] username & password is empty,but it's optional
+2024-05-07 10:05:44 [INFO] is_docker = false
+2024-05-07 10:05:44 [DEBUG] tar_command: tar -zcvf /home/seele/project/Backup-All/testdir/backupdir/admin-20240507100544.tar.gz /home/seele/project/Backup-All/testdir/backupdir/admin
+2024-05-07 10:05:44 [DEBUG] rm_command: find /home/seele/project/Backup-All/testdir/backupdir -name admin -type d -mtime +30 -exec rm -rf {} \;
+2024-05-07 10:05:44 [INFO] full_command:   mongodump --host localhost --port 27017 --db admin --out /home/seele/project/Backup-All/testdir/backupdir/admin && tar -zcvf /home/seele/project/Backup-All/testdir/backupdir/admin-20240507100544.tar.gz /home/seele/project/Backup-All/testdir/backupdir/admin && find /home/seele/project/Backup-All/testdir/backupdir -name admin -type d -mtime +30 -exec rm -rf {} \;
+2024-05-07 10:05:44 [INFO] There is a task config: {"type":"mysql","docker":{"is-docker":true,"container_name":"workdir-mysql-1"},"host":"localhost","port":"3306","username":"root","password":"root","database":"mysql"}
+2024-05-07 10:05:44 [INFO] task_type: mysql
+2024-05-07 10:05:44 [INFO] task_type = mysql
+2024-05-07 10:05:44 [INFO] There is a task config: {"type":"folder","path":"/home/seele/project/Backup-All/testdir/workdir/test_folder"}
+2024-05-07 10:05:44 [INFO] task_type: folder
+2024-05-07 10:05:44 [INFO] task_type = folder
+2024-05-07 10:05:44 [INFO] There is a task config: {"type":"volume","docker":{"is-docker":true,"volume_name":"workdir_my_volume"}}
+2024-05-07 10:05:44 [INFO] task_type: volume
+2024-05-07 10:05:44 [INFO] task_type = volume

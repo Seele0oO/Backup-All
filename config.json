@@ -10,36 +10,58 @@
         {
             "type": "mongodb",
             "docker": {
-                "is-docker": true,
-                "container_name": "mongo"
+                "is-docker": false,
+                "container_name": "mongo-with-auth"
             },
             "host": "localhost",
             "port": "27017",
-            "username": "",
-            "password": "",
+            "username": "root",
+            "password": "example",
+            "database": "admin"
+        },
+        {
+            "type": "mongodb",
+            "docker": {
+                "is-docker": false,
+                "container_name": "mongo-without-auth"
+            },
+            "host": "localhost",
+            "port": "27018",
             "database": "admin"
         },
         {
             "type": "mysql",
             "docker": {
                 "is-docker": true,
-                "container_name": "workdir-mysql-1"
+                "container_name": "mysql-5.7"
             },
             "host": "localhost",
             "port": "3306",
             "username": "root",
-            "password": "root",
+            "password": "example",
+            "database": "mysql"
+        },
+        {
+            "type": "mysql",
+            "docker": {
+                "is-docker": true,
+                "container_name": "mysql-8.0"
+            },
+            "host": "localhost",
+            "port": "3307",
+            "username": "root",
+            "password": "example",
             "database": "mysql"
         },
         {
             "type": "folder",
-            "path": "/home/seele/project/Backup-All/testdir/workdir/test_folder"
+            "path": "./testdir/workdir/test_folder"
         },
         {
             "type": "volume",
             "docker": {
                 "is-docker": true,
-                "volume_name": "workdir_my_volume"
+                "volume_name": "example-volume"
             }
         }
     ]
