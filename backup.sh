@@ -1,24 +1,58 @@
 #!/bin/bash
 
 # 定义日志级别和日志文件
-LOG_LEVELS="DEBUG INFO WARNING ERROR CRITICAL"
-LOG_FILE="./my_script.log"
+log_LEVELS="DEBUG INFO WARNING ERROR CRITICAL"
+log_FILE="./my_script.log"
 
+Warning_hint() {
+    echo -e "\033[31mIt's DANGEROUS to stop the script, please wait for the script to finish\033[0m"
+    echo -e "\033[31m停止脚本是危险的，请等待脚本完成\033[0m"
+    echo -e "\033[32mOperation confirmed. Waiting for 5 seconds...\033[0m"
+    echo -e "\033[32m操作已确认。等待5秒...\033[0m"
+    sleep 5
+}
 # 日志函数
 log() {
-  local level=$1 msg=$2
-  local timestamp=$(date '+%Y-%m-%d %H:%M:%S')
+    local level=$1 msg=$2
+    local timestamp=$(date '+%Y-%m-%d %H:%M:%S')
 
-  if [[ "$level" == "ERROR" || "$level" == "CRITICAL" ]]; then
-      echo "$timestamp [$level] $msg"
-      echo "$timestamp [$level] $msg" >> "$LOG_FILE"
-      exit 1
-  else
-      echo "$timestamp [$level] $msg"
-      echo "$timestamp [$level] $msg" >> "$LOG_FILE"
-  fi
+    case $level in
+        DEBUG)
+            echo "$timestamp [$level] $msg" >> "$log_FILE"
+        ;;
+        INFO)
+            echo -e "\033[32m$timestamp [$level] $msg\033[0m"
+            echo "$timestamp [$level] $msg" >> "$log_FILE"
+        ;;
+        WARNING)
+            echo -e "\033[33m$timestamp [$level] $msg\033[0m"
+            echo "$timestamp [$level] $msg" >> "$log_FILE"
+        ;;
+        ERROR)
+            echo -e "\033[31m$timestamp [$level] $msg\033[0m"
+            echo "$timestamp [$level] $msg" >> "$log_FILE"
+            exit 1
+        ;;
+        CRITICAL)
+            echo -e "\033[31m$timestamp [$level] $msg\033[0m"
+            echo "$timestamp [$level] $msg" >> "$log_FILE"
+            exit 1
+        ;;
+        *)
+            echo -e "\033[31mInvalid log level: $level\033[0m"
+            exit 1
+    esac
+
+
+    # if [[ "$level" == "ERROR" || "$level" == "CRITICAL" ]]; then
+    #     echo "$timestamp [$level] $msg"
+    #     echo "$timestamp [$level] $msg" >> "$log_FILE"
+    #     exit 1
+    # else
+    #     echo "$timestamp [$level] $msg"
+    #     echo "$timestamp [$level] $msg" >> "$log_FILE"
+    # fi
 }
-
 
 # 检测是否安装必要软件，如 jq,tar ,如果没有安装，提示安装并退出脚本
 check_software() {
@@ -35,14 +69,10 @@ read_config() {
         log "ERROR" "config.json does not exist"
     fi
     backup_root=$(jq -r '.settings[0].backup_root' config.json)
-
     backup_keep_days=$(jq -r '.settings[0].backup_keep_days' config.json)
 
-    docker_root=$(jq -r '.settings[0].docker_root' config.json)
-
     log "INFO" "backup_root: $backup_root"
-    log "INFO" "backup_keep_days: $backup_keep_days"
-    log "INFO" "docker_root: $docker_root"
+    log "INFO" "backup_keep_days: ${backup_keep_days}"
 }
 
 read_tasks() {
@@ -61,20 +91,23 @@ read_a_config() {
     if jq -e . <<<"$config_snippet" >/dev/null; then
         task_type=$(jq -r '.type' <<<"$config_snippet")
         log "INFO" "There is a task config: $config_snippet"
-        log "INFO" "task_type: $task_type"
+        log "DEBUG" "task_type: $task_type"
         case "${task_type}" in
             mongodb)
-                log "INFO" "task_type = mongodb"
+                log "DEBUG" "task_type = mongodb"
                 mongodb_task $config_snippet
             ;;
             mysql)
-                log "INFO" "task_type = mysql"
+                log "DEBUG" "task_type = mysql"
+                mysql_task $config_snippet
             ;;
             folder)
-                log "INFO" "task_type = folder"
+                log "DEBUG" "task_type = folder"
+                folder_task $config_snippet
             ;;
             volume)
-                log "INFO" "task_type = volume"
+                log "DEBUG" "task_type = volume"
+                volume_task $config_snippet
             ;;
             *)
                 log "ERROR" "Invalid task type: $task_type"
@@ -86,8 +119,18 @@ read_a_config() {
     fi
 }
 
+create_folder() {
+    local folder=$1
+    if [ ! -d "$folder" ]; then
+        mkdir -p "$folder"
+        log "INFO" "Create folder: $folder"
+    else
+        log "INFO" "Folder already exists: $folder"
+    fi
+}
+
 mongodb_task() {
-    log "INFO" "mongodb_task"
+    log "INFO" "********mongodb_task********"
     local config_snippet=$1
     local host
     local port
@@ -109,8 +152,8 @@ mongodb_task() {
         log "ERROR" "host, port, database are required"
     fi
     # INFO username and password are optional
-    if [ -z "$username" ]|| [ -z "$password" ]; then
-        log "INFO" "username & password is empty,but it's optional"
+    if [ -z "$username" ] && [ -z "$password" ]; then
+        log "WARNING" "username & password is empty,but it's optional"
     fi
     local command
     local docker_command
@@ -118,10 +161,10 @@ mongodb_task() {
     if $is_docker; then
         log "INFO" "is_docker = true"
         container_name=$(jq -r '.docker.container_name' <<<"$config_snippet")
-        log "INFO" "container_name: $container_name"
+        log "DEBUG" "container_name: $container_name"
         result=$(docker ps -q --filter "name=^/$container_name")
         if [ -n "$result" ]; then
-            log "INFO" "Find a container named $container_name"
+            log "DEBUG" "Find a container named $container_name"
         else
             log "ERROR" "Can't find a container named $container_name"
         fi
@@ -131,7 +174,7 @@ mongodb_task() {
         fi
         docker_command="docker exec -i $container_name"
     else
-        log "INFO" "is_docker = false"
+        log "DEBUG" "is_docker = false"
     fi
 
     # if without username & password
@@ -141,28 +184,34 @@ mongodb_task() {
         command=" mongodump --host $host --port $port --username $username --password $password --db $database"
     fi
 
+    # create folder if not exit
+    local current_task_backup_folder="$backup_root/mongo_$database_${host}_$port"
+    create_folder "$current_task_backup_folder"
+
     # export to specified folder
     local out_command=""
     if $is_docker; then
-        out_command="--out /tmp/$database && docker cp $container_name:/tmp/$database $backup_root/$database && docker exec -i $container_name sh -c 'rm -rf /tmp/$database'"
+        out_command="--out /tmp/$database | gzip | docker exec -i $container_name sh -c 'cat > /tmp/$database.tar.gz'"
+        out_command+=" && docker cp $container_name:/tmp/$database.tar.gz $current_task_backup_folder/$database-$(date +%Y%m%d%H%M%S).tar.gz"
+        out_command+=" && docker exec -i $container_name sh -c 'rm -rf /tmp/$database.tar.gz'"
+        # out_command="--out /tmp/$database && docker cp $container_name:/tmp/$database $backup_root/$database && docker exec -i $container_name sh -c 'rm -rf /tmp/$database'"
     else
-        out_command="--out $backup_root/$database"
+        out_command="--out $current_task_backup_folder/$database"
     fi
 
-    # create tar && check tarfile is vaild &&remove origin folder
-    local tar_filename
-    tar_filename="$backup_root/$database-$(date +%Y%m%d%H%M%S).tar.gz"
-    local tar_command="tar -zcvf $tar_filename $backup_root/$database"
-    log "DEBUG" "tar_command: $tar_command"
-    local rm_command="find $backup_root -name $database -type d -mtime +$backup_keep_days -exec rm -rf {} \;"
-    log "DEBUG" "rm_command: $rm_command"
-    local full_command="$docker_command $command $out_command && $tar_command && $rm_command"
+    local full_command="$docker_command $command $out_command"
 
-    log "INFO" "full_command: $full_command"
+    log "DEBUG" "full_command: $full_command"
+    eval $full_command
+    if [ $? -eq 0 ]; then
+        log "INFO" "Backup mongodb $database to $current_task_backup_folder success"
+    else
+        log "ERROR" "Backup mongodb $database to $current_task_backup_folder failed"
+    fi
 }
 
 mysql_task() {
-    log "INFO" "mysql_task"
+    log "INFO" "********mysql_task********"
     local config_snippet=$1
     local host
     local port
@@ -185,10 +234,10 @@ mysql_task() {
     if $is_docker; then
         log "INFO" "is_docker = true"
         container_name=$(jq -r '.docker.container_name' <<<"$config_snippet")
-        log "INFO" "container_name: $container_name"
+        log "DEBUG" "container_name: $container_name"
         result=$(docker ps -q --filter "name=^/$container_name")
         if [ -n "$result" ]; then
-            log "INFO" "Find a container named $container_name"
+            log "DEBUG" "Find a container named $container_name"
         else
             log "ERROR" "Can't find a container named $container_name"
         fi
@@ -198,49 +247,106 @@ mysql_task() {
         fi
         docker_command="docker exec -i $container_name"
     else
-        log "INFO" "is_docker = false"
+        log "DEBUG" "is_docker = false"
     fi
 
     command="mysqldump -h $host -P $port -u $username -p$password $database"
     local out_command
+    # create folder if not exit
+    # echo "Host value: $host"
+    local current_task_backup_folder="$backup_root/mysql_$database_${host}_$port"
+    create_folder "$current_task_backup_folder"
+    
     if $is_docker; then
-        out_command=" | gzip | docker exec -i $container_name sh -c 'cat > /tmp/$database.sql.gz' && docker cp $container_name:/tmp/$database.sql.gz $backup_root/$database.sql.gz && docker exec -i $container_name sh -c 'rm -rf /tmp/$database.sql.gz'"
+        out_command=" | gzip | docker exec -i $container_name sh -c 'cat > /tmp/$database.sql.gz'"
+        out_command+=" && docker cp $container_name:/tmp/$database.sql.gz $current_task_backup_folder/$database-$(date +%Y%m%d%H%M%S).sql.gz"
+        out_command+=" && docker exec -i $container_name sh -c 'rm -rf /tmp/$database.sql.gz'"
     else
-        out_command=" | gzip > $backup_root/$database.sql.gz"
+        out_command=" | gzip > $current_task_backup_folder/$database.sql.gz"
     fi
-    LOG "DEBUG" "docker_command: $docker_command"
-    LOG "DEBUG" "out_command: $out_command"
+    log "DEBUG" "docker_command: $docker_command"
+    log "DEBUG" "out_command: $out_command"
 
     local full_command="$docker_command $command $out_command"
-    log "INFO" "full_command: $full_command"
-
+    log "DEBUG" "full_command: $full_command"
+    eval $full_command
+    if [ $? -eq 0 ]; then
+        log "INFO" "Backup mysql $database to $current_task_backup_folder success"
+    else
+        log "ERROR" "Backup mysql $database to $current_task_backup_folder failed"
+    fi
 }
 
 folder_task() {
-    log "INFO" "folder_task"
+    log "INFO" "********folder_task********"
     local config_snippet=$1
     local path
 
     path=$(jq -r '.path' <<<"$config_snippet")
-    log "INFO" "path: $path"
+    log "DEBUG" "path: $path"
+    local current_task_backup_folder
+    current_task_backup_folder="$backup_root/folder_$(basename $path)"
+    create_folder "$current_task_backup_folder"
+
     local command
-    command="tar -zcvf $backup_root/$(basename $path)-$(date +%Y%m%d%H%M%S).tar.gz $path"
-    log "INFO" "command: $command"
+    command="tar -zcvf $current_task_backup_folder/$(basename $path)-$(date +%Y%m%d%H%M%S).tar.gz $path"
+    log "DEBUG" "command: $command"
+    eval $command
+    if [ $? -eq 0 ]; then
+        log "INFO" "Backup folder $path to $current_task_backup_folder success"
+    else
+        log "ERROR" "Backup folder $path to $current_task_backup_folder failed"
+    fi
 }
 
 volume_task() {
-    log "INFO" "volume_task"
+    log "INFO" "********volume_task********"
     local config_snippet=$1
     local volume_name
 
-    volume_name=$(jq -r '.volume_name' <<<"$config_snippet")
-    log "INFO" "volume_name: $volume_name"
+    volume_name=$(jq -r '.docker.volume_name' <<<"$config_snippet")
+    log "DEBUG" "volume_name: $volume_name"
+
+    # create folder if not exit
+    local current_task_backup_folder="$backup_root/volume_$volume_name"
+    create_folder "$current_task_backup_folder"
+
+    # create tar && check tarfile is vaild &&remove origin folder
+    local tar_filename
+    tar_filename="$current_task_backup_folder/$volume_name-$(date +%Y%m%d%H%M%S).tar.gz"
+
     local command
-    command="docker run --rm -v $volume_name:/volume -v $backup_root:/backup alpine tar -zcvf /backup/$(basename $volume_name)-$(date +%Y%m%d%H%M%S).tar.gz /volume"
-    log "INFO" "command: $command"
+    command="docker run --rm -v $volume_name:/volume -v $current_task_backup_folder:/backup alpine"
+    command+=" tar -cvf /backup/$volume_name-$(date +%Y%m%d%H%M%S).tar /volume"
+    log "DEBUG" "command: $command"
+
+    local full_command="$command"
+    log "DEBUG" "full_command: $full_command"
+    log "DEBUG" "tar_filename: $tar_filename"
+    eval $full_command
+    if [ $? -eq 0 ]; then
+        log "INFO" "Backup volume $volume_name to $current_task_backup_folder success"
+    else
+        log "ERROR" "Backup volume $volume_name to $current_task_backup_folder failed"
+    fi
+}
+
+cleanup() {
+    log "DEBUG" "cleanup"
+    local command
+    command="find $backup_root \( -name '*.tar.gz' -o -name '*.tar' -o -name '*.gz' \) -type f -mtime +${backup_keep_days} -exec rm -rf {} \;"
+    log "DEBUG" "command: $command"
+    eval $command
+    if [ $? -eq 0 ]; then
+        log "DEBUG" "cleanup success"
+    else
+        log "ERROR" "cleanup failed"
+    fi
 }
 
 # main function
+Warning_hint
 check_software
 read_config
 read_tasks
+cleanup

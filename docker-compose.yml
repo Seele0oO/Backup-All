@@ -16,7 +16,7 @@ services:
     ports:
       - "27018:27017"
     volumes:
-      - ./testdir/workdir/mongo:/data/db
+      - ./testdir/workdir/mongo-without-auth:/data/db
   
   mysql-5.7:
     container_name: mysql-5.7
@@ -47,4 +47,3 @@ services:
 
 volumes:
   example-volume:
-    path: ./testdir/workdir/fakedocker/example-volume

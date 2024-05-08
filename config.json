@@ -1,16 +1,15 @@
 {
     "settings": [
         {
-            "backup_root": "/home/seele/project/Backup-All/testdir/backupdir",
-            "backup_keep_days": "30",
-            "docker_root": "/home/seele/project/Backup-All/testdir/workdir/fakedocker"
+            "backup_root": "/home/dtl/Backup-All/testdir/backup",
+            "backup_keep_days": "30"
         }
     ],
     "tasks": [
         {
             "type": "mongodb",
             "docker": {
-                "is-docker": false,
+                "is-docker": true,
                 "container_name": "mongo-with-auth"
             },
             "host": "localhost",
@@ -22,11 +21,13 @@
         {
             "type": "mongodb",
             "docker": {
-                "is-docker": false,
+                "is-docker": true,
                 "container_name": "mongo-without-auth"
             },
             "host": "localhost",
             "port": "27018",
+            "username": "",
+            "password": "",
             "database": "admin"
         },
         {
@@ -61,7 +62,7 @@
             "type": "volume",
             "docker": {
                 "is-docker": true,
-                "volume_name": "example-volume"
+                "volume_name": "backup-all_example-volume"
             }
         }
     ]
