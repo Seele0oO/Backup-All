@@ -19,7 +19,7 @@ jobs:
         run: sudo apt-get install shc
 
       - name: Encrypt backup.sh
-        run: shc -r -T -v -C -f backup.sh
+        run: shc -r -v -C -f backup.sh
 
       - name: Upload Release Asset
         uses: actions/upload-release-asset@v1
