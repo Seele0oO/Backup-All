@@ -1,40 +1,32 @@
 name: Release Executable
 
 on:
-  push:
-    tags:
-      - "*"
+  release:
+    types: [created]
+
 permissions:
     packages: write
     contents: write
+
 jobs:
   release:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v2
 
-      - name: Create Release
-        id: create_release
-        uses: elgohr/Github-Release-Action@v5
-        env:
-          GH_TOKEN: ${{ secrets.RELEAST_TOKEN }}
-        with:
-          title: Release ${{ github.ref }}
+      - name: Install shc
+        run: sudo apt-get install shc
 
-      - name: Download artifact
-        id: download_artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: class_backup
-          path: dist
+      - name: Encrypt backup.sh
+        run: shc -f backup.sh
 
       - name: Upload Release Asset
-        uses: actions/upload-release-asset@v2
+        uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.RELEAST_TOKEN }}
         with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./dist/class_backup
-          asset_name: class_backup
+          upload_url: ${{ github.event.release.upload_url }}
+          asset_path: ./backup.sh.x
+          asset_name: backup.bin
           asset_content_type: application/octet-stream
