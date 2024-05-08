@@ -25,7 +25,7 @@ log() {
             echo "$timestamp [$level] $msg" >> "$log_FILE"
         ;;
         WARNING)
-            echo -e "\033[33m$timestamp [$level] $msg\033[0m"
+            echo -e "\033[43;37m$timestamp [$level] $msg\033[0m"
             echo "$timestamp [$level] $msg" >> "$log_FILE"
         ;;
         ERROR)
