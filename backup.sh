@@ -2,7 +2,8 @@
 
 # 定义日志级别和日志文件
 log_LEVELS="DEBUG INFO WARNING ERROR CRITICAL"
-log_FILE="./my_script.log"
+log_FILE="./script.log"
+config_file="config.json"
 
 Warning_hint() {
     echo -e "\033[31mIt's DANGEROUS to stop the script, please wait for the script to finish\033[0m"
@@ -65,21 +66,21 @@ check_software() {
 }
 # 读取全局配置文件
 read_config() {
-    if [ ! -f "config.json" ]; then
-        log "ERROR" "config.json does not exist"
+    if [ ! -f ${config_file} ]; then
+        log "ERROR" "${config_file} does not exist"
     fi
-    backup_root=$(jq -r '.settings[0].backup_root' config.json)
-    backup_keep_days=$(jq -r '.settings[0].backup_keep_days' config.json)
+    backup_root=$(jq -r '.settings[0].backup_root' ${config_file})
+    backup_keep_days=$(jq -r '.settings[0].backup_keep_days' ${config_file})
 
     log "INFO" "backup_root: $backup_root"
     log "INFO" "backup_keep_days: ${backup_keep_days}"
 }
 
 read_tasks() {
-    if [ ! -f "config.json" ]; then
-        log "ERROR" "config.json does not exist"
+    if [ ! -f ${config_file} ]; then
+        log "ERROR" "${config_file} does not exist"
     fi
-    tasks=$(jq -c '.tasks[]' config.json)
+    tasks=$(jq -c '.tasks[]' ${config_file})
     for task in $tasks; do
         read_a_config "$task"
     done
@@ -157,6 +158,7 @@ mongodb_task() {
     fi
     local command
     local docker_command
+    local backup_filename
 
     if $is_docker; then
         log "INFO" "is_docker = true"
@@ -173,28 +175,34 @@ mongodb_task() {
             log "ERROR" "docker exec failed, please check the container name"
         fi
         docker_command="docker exec -i $container_name"
+        backup_filename="mongo_${container_name}_${database}_${host}_${port}"
     else
         log "DEBUG" "is_docker = false"
+        backup_filename="mongo_${database}_${host}_${port}"
     fi
+
 
     # if without username & password
     if [ -z "$username" ]; then
         command=" mongodump --host $host --port $port --db $database"
+        backup_filename="${backup_filename}"
     else
         command=" mongodump --host $host --port $port --username $username --password $password --db $database"
+        backup_filename="${backup_filename}_${username}"
     fi
 
+    local current_task_backup_folder
+    current_task_backup_folder="${backup_root}/${backup_filename}"
+    log "DEBUG" "current_task_backup_folder: $current_task_backup_folder"
     # create folder if not exit
-    local current_task_backup_folder="$backup_root/mongo_$database_${host}_$port"
     create_folder "$current_task_backup_folder"
 
     # export to specified folder
     local out_command=""
     if $is_docker; then
-        out_command="--out /tmp/$database | gzip | docker exec -i $container_name sh -c 'cat > /tmp/$database.tar.gz'"
+        out_command="--out /tmp/$database && docker exec -i $container_name sh -c 'tar -zcvf /tmp/$database.tar.gz /tmp/$database'"
         out_command+=" && docker cp $container_name:/tmp/$database.tar.gz $current_task_backup_folder/$database-$(date +%Y%m%d%H%M%S).tar.gz"
         out_command+=" && docker exec -i $container_name sh -c 'rm -rf /tmp/$database.tar.gz'"
-        # out_command="--out /tmp/$database && docker cp $container_name:/tmp/$database $backup_root/$database && docker exec -i $container_name sh -c 'rm -rf /tmp/$database'"
     else
         out_command="--out $current_task_backup_folder/$database"
     fi
@@ -202,7 +210,7 @@ mongodb_task() {
     local full_command="$docker_command $command $out_command"
 
     log "DEBUG" "full_command: $full_command"
-    eval $full_command
+    eval $full_command >> ${log_FILE} 2>&1
     if [ $? -eq 0 ]; then
         log "INFO" "Backup mongodb $database to $current_task_backup_folder success"
     else
@@ -254,10 +262,16 @@ mysql_task() {
     local out_command
     # create folder if not exit
     # echo "Host value: $host"
-    local current_task_backup_folder="$backup_root/mysql_$database_${host}_$port"
+    local current_task_backup_folder
+    if ${is_docker}; then
+        current_task_backup_folder="$backup_root/mysql_${container_name}_$database_${host}_${port}"
+    else
+        current_task_backup_folder="$backup_root/mysql_${database}_${host}_${port}"
+    fi
+    log "DEBUG" "current_task_backup_folder: $current_task_backup_folder"
     create_folder "$current_task_backup_folder"
     
-    if $is_docker; then
+    if ${is_docker}; then
         out_command=" | gzip | docker exec -i $container_name sh -c 'cat > /tmp/$database.sql.gz'"
         out_command+=" && docker cp $container_name:/tmp/$database.sql.gz $current_task_backup_folder/$database-$(date +%Y%m%d%H%M%S).sql.gz"
         out_command+=" && docker exec -i $container_name sh -c 'rm -rf /tmp/$database.sql.gz'"
@@ -269,7 +283,7 @@ mysql_task() {
 
     local full_command="$docker_command $command $out_command"
     log "DEBUG" "full_command: $full_command"
-    eval $full_command
+    eval $full_command >> ${log_FILE} 2>&1
     if [ $? -eq 0 ]; then
         log "INFO" "Backup mysql $database to $current_task_backup_folder success"
     else
@@ -291,7 +305,7 @@ folder_task() {
     local command
     command="tar -zcvf $current_task_backup_folder/$(basename $path)-$(date +%Y%m%d%H%M%S).tar.gz $path"
     log "DEBUG" "command: $command"
-    eval $command
+    eval $command >> ${log_FILE} 2>&1
     if [ $? -eq 0 ]; then
         log "INFO" "Backup folder $path to $current_task_backup_folder success"
     else
@@ -323,7 +337,7 @@ volume_task() {
     local full_command="$command"
     log "DEBUG" "full_command: $full_command"
     log "DEBUG" "tar_filename: $tar_filename"
-    eval $full_command
+    eval $full_command >> ${log_FILE} 2>&1
     if [ $? -eq 0 ]; then
         log "INFO" "Backup volume $volume_name to $current_task_backup_folder success"
     else
@@ -336,7 +350,7 @@ cleanup() {
     local command
     command="find $backup_root \( -name '*.tar.gz' -o -name '*.tar' -o -name '*.gz' \) -type f -mtime +${backup_keep_days} -exec rm -rf {} \;"
     log "DEBUG" "command: $command"
-    eval $command
+    eval $command >> ${log_FILE} 2>&1
     if [ $? -eq 0 ]; then
         log "DEBUG" "cleanup success"
     else

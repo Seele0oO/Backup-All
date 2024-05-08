@@ -18,15 +18,15 @@ services:
     volumes:
       - ./testdir/workdir/mongo-without-auth:/data/db
   
-  mysql-5.7:
-    container_name: mysql-5.7
-    image: mysql:5.7
+  mysql-5.6:
+    container_name: mysql-5.6
+    image: mysql:5.6
     environment:
       MYSQL_ROOT_PASSWORD: example
     ports:
       - "3306:3306"
     volumes:
-      - ./testdir/workdir/mysql-5.7:/var/lib/mysql
+      - ./testdir/workdir/mysql-5.6:/var/lib/mysql
   
   mysql-8.0:
     image: mysql:8.0
@@ -40,8 +40,6 @@ services:
   
   nginx-volume:
     image: nginx:1.17
-    ports:
-      - "80:80"
     volumes:
       - example-volume:/usr/share/nginx/html
 
