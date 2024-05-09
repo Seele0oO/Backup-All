@@ -33,6 +33,8 @@ jobs:
           
       - name: Upload config.json as release asset
         uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.RELEAST_TOKEN }}
         with:
           upload_url: ${{ github.event.release.upload_url }}
           asset_path: ./config.json
