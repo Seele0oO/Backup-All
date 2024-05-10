@@ -205,6 +205,8 @@ mongodb_task() {
         out_command+=" && docker exec -i $container_name sh -c 'rm -rf /tmp/$database.tar.gz'"
     else
         out_command="--out $current_task_backup_folder/$database"
+        out_command+="&& tar -zcvf $current_task_backup_folder/$database-$(date +%Y%m%d%H%M%S).tar.gz $current_task_backup_folder/$database"
+        out_command+="&& rm -rf $current_task_backup_folder/$database"
     fi
 
     local full_command="$docker_command $command $out_command"
