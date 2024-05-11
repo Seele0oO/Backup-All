@@ -8,9 +8,20 @@ config_file="config.json"
 Warning_hint() {
     echo -e "\033[31mIt's DANGEROUS to stop the script, please wait for the script to finish\033[0m"
     echo -e "\033[31m停止脚本是危险的，请等待脚本完成\033[0m"
-    echo -e "\033[32mOperation confirmed. Waiting for 5 seconds...\033[0m"
-    echo -e "\033[32m操作已确认。等待5秒...\033[0m"
-    sleep 5
+    countdown() {
+        local i=$1
+        while [ $i -gt 0 ]; do
+            echo -e "\033[32mPlease make a decision in the next $i seconds... Press Ctrl+C if you need to stop the operation.\033[0m"
+            echo -e "\033[32m请在接下来的 $i 秒内做出决定...如果需要停止操作，请按 Ctrl+C。\033[0m"
+            sleep 1
+            echo -ne "\033[2A\033[0K"
+            ((i--))
+        done
+        eval "clear"
+        echo -e "\033[32mOperation confirmed.\033[0m"
+        echo -e "\033[32m操作已确认。\033[0m"
+    }
+    countdown 5
 }
 # 日志函数
 log() {
