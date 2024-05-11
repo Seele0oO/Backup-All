@@ -2,6 +2,12 @@
  
 Backup-All is a collection of scripts and configuration files for performing backups.
 
+## Todos
+
+[] add docker comtainer name regex.
+[] add config file args.
+[] add folder backup exclude.
+
 ## Features
 
 - Simple and lightweight backup script.
