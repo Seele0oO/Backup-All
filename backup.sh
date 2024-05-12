@@ -440,7 +440,10 @@ cleanup() {
     backup_keep_days=$(jq -r '.settings[0].backup_keep_days' ${config_file})
     log "DEBUG" "cleanup"
     local command
+    local remove_empty_folders
+    remove_empty_folders="find $backup_root -type d -empty -delete"
     command="find $backup_root \( -name '*.tar.gz' -o -name '*.tar' -o -name '*.gz' \) -type f -mtime +${backup_keep_days} -exec rm -rf {} \;"
+    command+=" && $remove_empty_folders"
     log "DEBUG" "command: $command"
     eval $command >> ${log_FILE} 2>&1
     if [ $? -eq 0 ]; then
@@ -450,7 +453,21 @@ cleanup() {
     fi
 }
 
+display_help() {
+    echo "Usage: $0 [-h] [-f] [-t]"
+    echo "Options:"
+    echo "  -h, --help  Display this help message."
+    echo "  -f, --file  Specify the configuration file and run tasks."
+    echo "  -t, --test  Test the configuration file."
+    echo " Example: $0 -f config.json"
+    echo " Example: $0 --test config.json"
+}
+
 read_args() {
+    if [ $# -eq 0 ]; then
+        display_help
+    fi
+
     OPTIONS=$(getopt -o hf:t: --long help,file:,test: -- "$@")
     if [ $? -ne 0 ]; then
         echo "getopt error"
@@ -462,13 +479,7 @@ read_args() {
     while true; do
         case "$1" in
             -h|--help)
-                echo "Usage: $0 [-h] [-f]"
-                echo "Options:"
-                echo "  -h, --help  Display this help message."
-                echo "  -f, --file  Specify the configuration file."
-                echo "  -t, --test  Test the configuration file."
-                echo " Example: $0 -f config.json"
-                echo " Example: $0 --test config.json"
+                display_help
                 exit 0
             ;;
             -f|--file)
