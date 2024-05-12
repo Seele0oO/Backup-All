@@ -24,8 +24,7 @@ Backup-All is a collection of scripts and configuration files for performing bac
 4. Run the `backup.bin` script to perform the backup:
 
     ```bash
-    backup.bin
-    # config.json should be in the same directory as backup.bin
+    backup.bin -h
     ```
 
 ## Configuration
@@ -44,9 +43,9 @@ Example `config.json`:
     ],
     "tasks": [
         {
-            "type": "mongodb"| "mysql" | "folder"|"volume",
+            "type": "mongodb|mysql|folder|volume",
             "docker":{
-                "is-docker": true|false,
+                "is-docker": "true|false",
                 "container_name": "container_name",
             }
             "host": "hostname",
