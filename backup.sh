@@ -1,9 +1,8 @@
 #!/bin/bash
 
 # 定义日志级别和日志文件
-log_LEVELS="DEBUG INFO WARNING ERROR CRITICAL"
+# log_LEVELS="DEBUG INFO WARNING ERROR CRITICAL"
 log_FILE="./script.log"
-config_file="config.json"
 
 Warning_hint() {
     echo -e "\033[31mIt's DANGEROUS to stop the script, please wait for the script to finish\033[0m"
@@ -26,7 +25,8 @@ Warning_hint() {
 # 日志函数
 log() {
     local level=$1 msg=$2
-    local timestamp=$(date '+%Y-%m-%d %H:%M:%S')
+    local timestamp=
+    timestamp=$(date '+%Y-%m-%d %H:%M:%S')
 
     case $level in
         DEBUG)
@@ -54,16 +54,6 @@ log() {
             echo -e "\033[31mInvalid log level: $level\033[0m"
             exit 1
     esac
-
-
-    # if [[ "$level" == "ERROR" || "$level" == "CRITICAL" ]]; then
-    #     echo "$timestamp [$level] $msg"
-    #     echo "$timestamp [$level] $msg" >> "$log_FILE"
-    #     exit 1
-    # else
-    #     echo "$timestamp [$level] $msg"
-    #     echo "$timestamp [$level] $msg" >> "$log_FILE"
-    # fi
 }
 
 # 检测是否安装必要软件，如 jq,tar ,如果没有安装，提示安装并退出脚本
@@ -75,12 +65,25 @@ check_software() {
         log "ERROR" "tar is not installed, please install tar first"
     fi
 }
+# 检查 config_file 是否存在和格式错误
+check_config_file() {
+    config_file=$1
+    if [ -z "${config_file}" ]; then
+        log "CRITICAL" "No configuration file specified"
+    elif [ ! -f "${config_file}" ]; then
+        log "CRITICAL" "${config_file} does not exist"
+    fi
+    if jq -e .settings ${config_file} > /dev/null && jq -e .tasks ${config_file} > /dev/null; then
+        log "INFO" "${config_file} is valid"
+    else
+        log "ERROR" "${config_file} is invalid"
+    fi
+    log "INFO" "config_file: ${config_file}"
+}
 # 读取全局配置文件
 read_config() {
     config_file=$1
-    if [ ! -f ${config_file} ]; then
-        log "ERROR" "${config_file} does not exist"
-    fi
+    check_config_file $config_file
     backup_root=$(jq -r '.settings[0].backup_root' ${config_file})
     backup_keep_days=$(jq -r '.settings[0].backup_keep_days' ${config_file})
 
@@ -89,9 +92,9 @@ read_config() {
 }
 
 read_tasks() {
-    if [ ! -f ${config_file} ]; then
-        log "ERROR" "${config_file} does not exist"
-    fi
+    config_file=$1
+    check_config_file $config_file
+    log "INFO" "********read_tasks********"
     tasks=$(jq -c '.tasks[]' ${config_file})
     for task in $tasks; do
         read_a_task "$task"
@@ -149,9 +152,9 @@ read_a_task() {
 }
 
 run_tasks() {
-    if [ ! -f ${config_file} ]; then
-        log "ERROR" "${config_file} does not exist"
-    fi
+    config_file=$1
+    check_config_file $config_file
+    log "INFO" "********run_tasks********"
     tasks=$(jq -c '.tasks[]' ${config_file})
     for task in $tasks; do
         run_a_task "$task"
@@ -291,7 +294,7 @@ mongodb_task() {
         out_command+="&& rm -rf $current_task_backup_folder/${database}"
     fi
     local full_command="$docker_command $command $out_command"
-    log "INFO" "full_command: $full_command"
+    log "DEBUG" "full_command: $full_command"
     eval $full_command >> ${log_FILE} 2>&1
     local exit_status=$?
     if [ ${exit_status} -eq 0 ]; then
@@ -444,7 +447,9 @@ read_args() {
         echo "getopt error"
         exit 1
     fi
+    
     eval set -- "$OPTIONS"
+    
     while true; do
         case "$1" in
             -h|--help)
@@ -460,7 +465,6 @@ read_args() {
             -f|--file)
                 shift
                 Warning_hint
-                read_config "$1"
                 run_tasks "$1"
                 cleanup "$1"
                 shift
@@ -484,6 +488,7 @@ read_args() {
         esac
     done
 }
+
 
 
 
