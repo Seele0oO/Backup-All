@@ -376,15 +376,24 @@ folder_task() {
     log "INFO" "********folder_task********"
     local config_snippet=$1
     local path
+    local excludes
+    local exclude_commands
 
     path=$(jq -r '.path' <<<"$config_snippet")
-    log "DEBUG" "path: $path"
+    excludes=$(jq -r '.exclude' <<<"$config_snippet")
+    excludes=$(echo $excludes | tr -d '[],"')
+    log "INFO" "excludes: $excludes"
+    exclude_commands=""
+    for exclude in $excludes; do
+        exclude_commands+=" --exclude=$exclude"
+    done
+    log "INFO" "path: $path"
     local current_task_backup_folder
     current_task_backup_folder="$backup_root/folder_$(basename $path)"
     create_folder "$current_task_backup_folder"
 
     local command
-    command="tar -zcvf $current_task_backup_folder/$(basename $path)-$(date +%Y%m%d%H%M%S).tar.gz $path"
+    command="tar -zcvf $current_task_backup_folder/$(basename $path)-$(date +%Y%m%d%H%M%S).tar.gz $exclude_commands $path"
     log "DEBUG" "command: $command"
     eval $command >> ${log_FILE} 2>&1
     if [ $? -eq 0 ]; then

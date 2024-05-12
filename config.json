@@ -1,7 +1,7 @@
 {
     "settings": [
         {
-            "backup_root": "/home/dtl/Backup-All/testdir/backup",
+            "backup_root": "/home/seele/project/Backup-All/testdir/backup",
             "backup_keep_days": "30"
         }
     ],
@@ -22,7 +22,7 @@
             "type": "mongodb",
             "docker": {
                 "is-docker": true,
-                "container_name": "mongo-without-auth"
+                "container_name": "mongo-without-au"
             },
             "host": "localhost",
             "port": "27017",
@@ -34,7 +34,7 @@
             "type": "mysql",
             "docker": {
                 "is-docker": true,
-                "container_name": "mysql-5.7"
+                "container_name": "mysql-5"
             },
             "host": "localhost",
             "port": "3306",
@@ -56,7 +56,10 @@
         },
         {
             "type": "folder",
-            "path": "./testdir/workdir/test_folder"
+            "path": "./testdir/workdir/test_folder",
+            "exclude": [
+
+            ]
         },
         {
             "type": "volume",

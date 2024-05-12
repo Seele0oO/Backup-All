@@ -7,7 +7,7 @@ Backup-All is a collection of scripts and configuration files for performing bac
 - [*] add docker comtainer name regex.
 - [*] add config file args.
 - [*] Check configuration file.
-- [ ] add folder backup exclude.
+- [*] add folder backup exclude.
 - [ ] Remove empty directories after deleting old files. 
 
 ## Features
