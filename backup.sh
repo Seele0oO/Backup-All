@@ -283,6 +283,15 @@ mongodb_task() {
     create_folder "$current_task_backup_folder"
 
     # export to specified folder
+    local hack_command=""
+    # Centos hack
+    if uname -a | grep -qiE 'centos'; then
+        # fuck Centos
+        hack_command="docker exec -it container_id mkdir /tmp/{database}"
+    else
+        log "INFO" "当前系统不是 CentOS 相关的，不必执行命令"
+        hack_command=""
+    fi
     local out_command=""
     if ${is_docker}; then
         out_command="--out /tmp/${database} && docker exec -i ${container_name} sh -c 'tar -zcvf /tmp/${database}.tar.gz /tmp/${database}'"
@@ -293,7 +302,7 @@ mongodb_task() {
         out_command+="&& tar -zcvf $current_task_backup_folder/${database}-$(date +%Y%m%d%H%M%S).tar.gz $current_task_backup_folder/${database}"
         out_command+="&& rm -rf $current_task_backup_folder/${database}"
     fi
-    local full_command="$docker_command $command $out_command"
+    local full_command="$hack_command $docker_command $command $out_command"
     log "DEBUG" "full_command: $full_command"
     eval $full_command >> ${log_FILE} 2>&1
     local exit_status=$?
