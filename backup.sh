@@ -287,7 +287,7 @@ mongodb_task() {
     # Centos hack
     if command -v yum &> /dev/null; then
         # fuck Centos
-        hack_command="docker exec -it ${container_name} mkdir /tmp/{database}"
+        hack_command="docker exec -it ${container_name} mkdir /tmp/${database} &&"
     else
         log "INFO" "当前系统不是 CentOS 相关的，不必执行命令"
         hack_command=""
