@@ -285,7 +285,7 @@ mongodb_task() {
     # export to specified folder
     local hack_command=""
     # Centos hack
-    if uname -a | grep -qiE 'centos'; then
+    if command -v yum &> /dev/null; then
         # fuck Centos
         hack_command="docker exec -it container_id mkdir /tmp/{database}"
     else
