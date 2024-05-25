@@ -261,7 +261,7 @@ mongodb_task() {
             log "ERROR" "docker exec failed, please check the container name"
         fi
         docker_command="docker exec -i ${container_name}"
-        backup_filename="mongo_${database}_${container_name}_${host}_${port}"
+        backup_filename="mongo_${database}_${short_container_name}_${host}_${port}"
     else
         log "DEBUG" "is_docker = false"
         backup_filename="mongo_${database}_${host}_${port}"
@@ -300,7 +300,7 @@ mongodb_task() {
         out_command+=" && docker exec -i ${container_name} sh -c 'rm -rf /tmp/${database}.tar.gz'"
     else
         out_command="--out $current_task_backup_folder/${database}"
-        out_command+="&& tar -zcvf $current_task_backup_folder/${short_container_name}-$(date +%Y%m%d%H%M%S).tar.gz $current_task_backup_folder/${database}"
+        out_command+="&& tar -zcvf $current_task_backup_folder/${database}-$(date +%Y%m%d%H%M%S).tar.gz $current_task_backup_folder/${database}"
         out_command+="&& rm -rf $current_task_backup_folder/${database}"
     fi
     local full_command="$hack_command $docker_command $command $out_command"
@@ -355,7 +355,7 @@ mysql_task() {
     # echo "Host value: $host"
     local current_task_backup_folder
     if ${is_docker}; then
-        current_task_backup_folder="$backup_root/mysql_${database}_${container_name}_${host}_${port}"
+        current_task_backup_folder="$backup_root/mysql_${database}_${short_container_name}_${host}_${port}"
     else
         current_task_backup_folder="$backup_root/mysql_${database}_${host}_${port}"
     fi
@@ -364,7 +364,7 @@ mysql_task() {
     
     if ${is_docker}; then
         out_command=" | gzip | docker exec -i ${container_name} sh -c 'cat > /tmp/${database}.sql.gz'"
-        out_command+=" && docker cp ${container_name}:/tmp/${database}.sql.gz $current_task_backup_folder/${short_container_name}-$(date +%Y%m%d%H%M%S).sql.gz"
+        out_command+=" && docker cp ${container_name}:/tmp/${database}.sql.gz $current_task_backup_folder/${database}-$(date +%Y%m%d%H%M%S).sql.gz"
         out_command+=" && docker exec -i ${container_name} sh -c 'rm -rf /tmp/${database}.sql.gz'"
     else
         out_command=" | gzip > $current_task_backup_folder/${database}.sql.gz"
