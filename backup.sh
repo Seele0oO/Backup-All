@@ -203,6 +203,7 @@ create_folder() {
 
 regexp_container_name() {
     container_name=$1
+    short_container_name=$1
     local result
     result=$(docker ps --format '{{.Names}}' | grep "^${container_name}" | tr ' ' '\n')
     # 计算结果数量
@@ -299,7 +300,7 @@ mongodb_task() {
         out_command+=" && docker exec -i ${container_name} sh -c 'rm -rf /tmp/${database}.tar.gz'"
     else
         out_command="--out $current_task_backup_folder/${database}"
-        out_command+="&& tar -zcvf $current_task_backup_folder/${database}-$(date +%Y%m%d%H%M%S).tar.gz $current_task_backup_folder/${database}"
+        out_command+="&& tar -zcvf $current_task_backup_folder/${short_container_name}-$(date +%Y%m%d%H%M%S).tar.gz $current_task_backup_folder/${database}"
         out_command+="&& rm -rf $current_task_backup_folder/${database}"
     fi
     local full_command="$hack_command $docker_command $command $out_command"
@@ -363,7 +364,7 @@ mysql_task() {
     
     if ${is_docker}; then
         out_command=" | gzip | docker exec -i ${container_name} sh -c 'cat > /tmp/${database}.sql.gz'"
-        out_command+=" && docker cp ${container_name}:/tmp/${database}.sql.gz $current_task_backup_folder/${database}-$(date +%Y%m%d%H%M%S).sql.gz"
+        out_command+=" && docker cp ${container_name}:/tmp/${database}.sql.gz $current_task_backup_folder/${short_container_name}-$(date +%Y%m%d%H%M%S).sql.gz"
         out_command+=" && docker exec -i ${container_name} sh -c 'rm -rf /tmp/${database}.sql.gz'"
     else
         out_command=" | gzip > $current_task_backup_folder/${database}.sql.gz"
