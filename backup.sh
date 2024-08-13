@@ -116,6 +116,7 @@ read_a_task() {
                 log "INFO" "username: $(jq -r '.username' <<<"$config_snippet")"
                 log "INFO" "password: $(jq -r '.password' <<<"$config_snippet")"
                 log "INFO" "database: $(jq -r '.database' <<<"$config_snippet")"
+                log "INFO" "excludeCollection: $(jq -r '.excludeCollection' <<<"$config_snippet")"
                 log "INFO" "is-docker: $(jq -r '.docker."is-docker"' <<<"$config_snippet")"
                 log "INFO" "container_name: $(jq -r '.docker.container_name' <<<"$config_snippet")"
             ;;
@@ -229,12 +230,14 @@ mongodb_task() {
     local username
     local password
     local database
+    local excludeCollection
 
     host=$(jq -r '.host' <<<"$config_snippet")
     port=$(jq -r '.port' <<<"$config_snippet")
     username=$(jq -r '.username' <<<"$config_snippet")
     password=$(jq -r '.password' <<<"$config_snippet")
     database=$(jq -r '.database' <<<"$config_snippet")
+    excludeCollection=$(jq -r '.excludeCollection' <<<"$config_snippet")
 
     local is_docker
     is_docker=$(jq -r '.docker."is-docker"' <<<"$config_snippet")
@@ -267,13 +270,46 @@ mongodb_task() {
         backup_filename="mongo_${database}_${host}_${port}"
     fi
 
+    # stringfy mongo excludeCollection
+    stringify_collections() {
+        local excludeCollection="$1"
+        local prefix="$2"
+        local suffix="$3"
+
+        # 如果没有传入 collections，则返回空
+        if [ -z "$excludeCollection" ]; then
+            echo ""
+            return
+        fi
+
+        # 去掉方括号并移除引号
+        excludeCollection=$(echo "$excludeCollection" | tr -d '[]"' | tr ',' ' ')
+
+        # 初始化结果变量
+        local result=""
+
+        # 遍历每个集合名称，添加前缀和后缀
+        for collection in $excludeCollection; do
+            result="$result ${prefix}${collection}${suffix}"
+        done
+
+        # 输出结果，移除开头的空格
+        echo "${result# }"
+    }
+
+    excludeCollection=$excludeCollection
+
+    # 定义前缀和后缀
+    prefix=" --excludeCollection "
+    suffix=" "
+    final_collections=$(stringify_collections "$excludeCollection" "$prefix" "$suffix")
 
     # if without username & password
     if [ -z "$username" ]; then
-        command=" mongodump --host $host --port $port --db ${database}"
+        command=" mongodump --host $host --port $port --db ${database} ${final_collections}"
         backup_filename="${backup_filename}"
     else
-        command=" mongodump --host $host --port $port --username $username --password $password --db ${database}"
+        command=" mongodump --host $host --port $port --username $username --password $password --db ${database} ${final_collections}"
         backup_filename="${backup_filename}_${username}"
     fi
 
