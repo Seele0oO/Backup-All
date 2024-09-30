@@ -403,7 +403,7 @@ mysql_task() {
         out_command+=" && docker cp ${container_name}:/tmp/${database}.sql.gz $current_task_backup_folder/${database}-$(date +%Y%m%d%H%M%S).sql.gz"
         out_command+=" && docker exec -i ${container_name} sh -c 'rm -rf /tmp/${database}.sql.gz'"
     else
-        out_command=" | gzip > $current_task_backup_folder/${database}.sql.gz"
+        out_command=" | gzip > $current_task_backup_folder/${database}-$(date +%Y%m%d%H%M%S).sql.gz"
     fi
     log "DEBUG" "docker_command: $docker_command"
     log "DEBUG" "out_command: $out_command"
