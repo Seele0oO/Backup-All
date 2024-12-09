@@ -1,8 +1,8 @@
 {
     "settings": [
         {
-            "backup_root": "/home/seele/project/Backup-All/testdir/backup",
-            "backup_keep_days": "30"
+            "backup_root": "/home/seele/Projects/Backup-All/testdir/backup",
+            "backup_keep_days": "0"
         }
     ],
     "tasks": [
@@ -30,9 +30,9 @@
             },
             "username": "",
             "password": "",
-            "host": "10.0.1.102",
-            "port": "27017",
-            "database": "rctechx",
+            "host": "localhost",
+            "port": "27018",
+            "database": "admin",
             "excludeCollection": [
                 "jobrun",
                 "changelog"
