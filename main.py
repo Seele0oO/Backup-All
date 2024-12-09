@@ -14,6 +14,7 @@ class BackupSystem:
     def __init__(self, config_file: str):
         self.logger = Logger()
         self.config = ConfigManager(config_file, self.logger)
+        self._init_python_path()
         self.plugins = self._load_plugins()
 
     def _init_python_path(self):
@@ -85,35 +86,53 @@ class BackupSystem:
         """运行备份任务"""
         WarningHint.countdown()
         
-        for task in self.config.tasks:
-            task_type = task['type']
-            if task_type in self.plugins:
+        # 执行数据库任务
+        for db_task in self.config.database_tasks:
+            plugin = self.plugins.get(db_task.type)
+            if plugin:
                 try:
-                    self.plugins[task_type].backup(task)
+                    plugin.backup(db_task)
                 except Exception as e:
-                    self.logger.error(f"Task {task_type} failed: {str(e)}")
+                    self.logger.error(f"{db_task.type} backup failed: {str(e)}")
             else:
-                self.logger.error(f"No plugin found for task type: {task_type}")
+                self.logger.error(f"No plugin found for database type: {db_task.type}")
 
+        # 执行文件夹任务
+        for folder_task in self.config.folder_tasks:
+            if 'folder' in self.plugins:
+                try:
+                    self.plugins['folder'].backup(folder_task)
+                except Exception as e:
+                    self.logger.error(f"Folder backup failed: {str(e)}")
+            else:
+                self.logger.error("Folder backup plugin not found")
+
+        # 执行卷任务
+        for volume_task in self.config.volume_tasks:
+            if 'volume' in self.plugins:
+                try:
+                    self.plugins['volume'].backup(volume_task)
+                except Exception as e:
+                    self.logger.error(f"Volume backup failed: {str(e)}")
+            else:
+                self.logger.error("Volume backup plugin not found")
+
+        # 执行清理
         self._cleanup_old_backups()
 
-def check_dependencies(config):
+def check_dependencies(config: ConfigManager):
     """根据配置文件检查必要的命令行工具"""
     required_commands = {
         'tar': 'tar command',
         'docker': 'Docker command line'
     }
     
-    # 遍历任务检查是否需要额外的依赖
-    for task in config.tasks:
-        task_type = task['type']
-        is_docker = task.get('docker', {}).get('is-docker', False)
-        
-        # 只有非docker任务才需要检查数据库工具
-        if not is_docker:
-            if task_type == 'mongodb':
+    # 检查数据库任务的依赖
+    for task in config.database_tasks:
+        if not task.docker.enabled:  # 只有非docker任务才需要检查数据库工具
+            if task.type == 'mongodb':
                 required_commands['mongodump'] = 'MongoDB tools'
-            elif task_type == 'mysql':
+            elif task.type == 'mysql':
                 required_commands['mysqldump'] = 'MySQL client'
     
     # 检查依赖是否存在
@@ -145,7 +164,13 @@ def main():
             logger.info(f"Using config file: {args.file}")
             logger.info(f"Backup root: {config.backup_root}")
             logger.info(f"Backup keep days: {config.backup_keep_days}")
-            logger.info(f"Found {len(config.tasks)} tasks")
+            
+            total_tasks = (
+                len(config.database_tasks) + 
+                len(config.folder_tasks) + 
+                len(config.volume_tasks)
+            )
+            logger.info(f"Found {total_tasks} tasks")
             
             backup_system = BackupSystem(args.file)
             backup_system.run()
@@ -155,11 +180,26 @@ def main():
             logger.info(f"Config file validated successfully: {args.test}")
             logger.info(f"Backup root: {config.backup_root}")
             logger.info(f"Backup keep days: {config.backup_keep_days}")
-            logger.info(f"Found {len(config.tasks)} tasks")
             
-            # 显示每个任务的基本信息
-            for i, task in enumerate(config.tasks, 1):
-                logger.info(f"Task {i}: type={task['type']}, docker={'is-docker' in task.get('docker', {})}")
+            # 显示数据库任务信息
+            for task in config.database_tasks:
+                logger.info(
+                    f"Database task: type={task.type}, "
+                    f"database={task.database}, "
+                    f"docker={'enabled' if task.docker.enabled else 'disabled'}"
+                )
+            
+            # 显示文件夹任务信息
+            for task in config.folder_tasks:
+                logger.info(
+                    f"Folder task: path={task.path}, "
+                    f"exclude_count={len(task.exclude) if task.exclude else 0}"
+                )
+            
+            # 显示卷任务信息
+            for task in config.volume_tasks:
+                logger.info(f"Volume task: name={task.name}")
+            
     except Exception as e:
         logger.error(f"Error: {str(e)}")
         sys.exit(1)
