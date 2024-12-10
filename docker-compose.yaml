@@ -7,4 +7,6 @@ services:
       dockerfile: Dockerfile
     volumes:
       - ./config.json:/app/config.json
-    command: ["/app/my_app.bin", "-t", "/app/config.json"]
+      - ./output:/app/dist/output
+    command: >
+      /bin/sh -c "cp /app/dist/main /app/dist/output/"
