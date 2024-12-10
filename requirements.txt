@@ -1,7 +1,8 @@
-certifi==2024.8.30
-charset-normalizer==3.4.0
-colorlog==6.9.0
-docker==7.1.0
-idna==3.10
-requests==2.32.3
-urllib3==2.2.3
+certifi
+charset-normalizer
+colorlog
+docker
+idna
+requests
+urllib3
+dataclasses
