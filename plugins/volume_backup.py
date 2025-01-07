@@ -23,7 +23,7 @@ class VolumeBackup(BackupPlugin):
             output_file = backup_path / archive_name
 
             container = self.docker_helper.client.containers.run(
-                "alpine",
+                "registry.cn-hangzhou.aliyuncs.com/cqtech/busybox:latest",
                 f"tar cvf /backup/{archive_name} /volume",
                 volumes={
                     task_config.name: {"bind": "/volume", "mode": "ro"},
