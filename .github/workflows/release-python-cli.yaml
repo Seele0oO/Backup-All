@@ -1,0 +1,42 @@
+name: Release Executable
+
+on:
+  release:
+    types: [created]
+
+permissions:
+    packages: write
+    contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Docker
+        run: curl -fsSL https://raw.githubusercontent.com/docker/docker-install/master/install.sh | sh
+
+      - name: Build with Docker
+        run: docker compose up -d --build
+
+      - name: Upload Release Asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.RELEAST_TOKEN }}
+        with:
+          upload_url: ${{ github.event.release.upload_url }}
+          asset_path: ./output/main
+          asset_name: backup.bin
+          asset_content_type: application/octet-stream
+          
+      - name: Upload config.json as release asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.RELEAST_TOKEN }}
+        with:
+          upload_url: ${{ github.event.release.upload_url }}
+          asset_path: ./config.json
+          asset_name: config.json
+          asset_content_type: application/json
