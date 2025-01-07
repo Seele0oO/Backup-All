@@ -1,0 +1,14 @@
+altgraph
+certifi
+charset-normalizer
+colorlog
+dataclasses
+docker
+idna
+packaging
+pyinstall
+pyinstaller
+pyinstaller-hooks-contrib
+requests
+setuptools
+urllib3
