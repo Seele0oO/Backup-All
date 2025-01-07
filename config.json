@@ -72,6 +72,7 @@
       },
       "folders": [
         {
+          "note":"must absolute path",
           "path": "./testdir/workdir/test_folder",
           "exclude": [
             "./testdir/workdir/test_folder/c",
