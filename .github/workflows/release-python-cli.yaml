@@ -1,4 +1,4 @@
-name: Release Executable
+name: Release Python Executable
 
 on:
   release:
