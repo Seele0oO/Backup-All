@@ -1,4 +1,4 @@
-FROM docker.1panel.live/seele0oo/buildenvironment:pyinstaller-centos7-py3.6
+FROM seele0oo/buildenvironment:pyinstaller-centos7-py3.6
 # 设置代理（如果有）
 # ENV http_proxy=http://192.168.30.254:7890
 # ENV https_proxy=http://192.168.30.254:7890
